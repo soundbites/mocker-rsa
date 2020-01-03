@@ -40,7 +40,7 @@ Sometimes you want to simulate slow loading of resources to test loaders in an a
     }
 ```
 
-If you want to apply a global delay to, an interceptor can be used like so (defined directly in the Application.module() function):
+If you want to apply a global delay to all resources, an interceptor can be used like so (defined directly in the Application.module() function):
 
 ```
 intercept(ApplicationCallPipeline.Call) {
