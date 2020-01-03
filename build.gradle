@@ -13,7 +13,7 @@ apply plugin: 'application'
 
 group 'nl.capaxit'
 version '0.0.1'
-mainClassName = "io.ktor.server.netty.EngineMain"
+mainClassName = "ApplicationKt"
 
 sourceSets {
     main.kotlin.srcDirs = main.java.srcDirs = ['src']
@@ -37,3 +37,5 @@ dependencies {
     compile "io.ktor:ktor-locations:$ktor_version"
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
 }
+
+// todo add run and hot-reload feature
