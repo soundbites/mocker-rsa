@@ -1,1 +1,1 @@
-./gradlew -t compileKotlin
+./gradlew -t install
