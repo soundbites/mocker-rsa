@@ -1,16 +1,64 @@
 package nl.jcraane.mocker.features
 
+import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
+import io.ktor.application.call
+import io.ktor.client.HttpClient
+import io.ktor.client.call.call
+import io.ktor.client.response.readText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.TextContent
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import io.ktor.request.uri
+import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
+import io.ktor.util.pipeline.PipelineContext
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.nio.charset.Charset
 
 class RequestForwardingAndRecordingFeature(private val configuration: Configuration) {
+    private val httpClient = HttpClient()
+
+    suspend fun intercept(context: PipelineContext<Any, ApplicationCall>) {
+        val forwarding = configuration.forwardingConfig
+        if (forwarding != null) {
+            val subject = context.subject
+            val call = context.call
+            if (subject is HttpStatusCode && subject == HttpStatusCode.NotFound) {
+                val originUrl = "${forwarding.origin}/${call.request.uri}"
+                logger.info("Request to ${call.request.uri} not found, trying $originUrl ")
+                try {
+                    val result = httpClient.call(originUrl)
+                    val response = result.response
+                    if (response.status.isSuccess()) {
+                        val text = response.readText(Charset.forName("UTF-8"))
+                        context.proceedWith(TextContent(text, response.contentType() ?: ContentType.Any, response.status))
+                    } else {
+                        logger.info("Request to $originUrl failed, sending 500")
+                    }
+                } catch (e: Exception) {
+                    logger.info("Request to $originUrl failed, sending 500")
+                }
+            }
+        }
+    }
+
     class Configuration() {
-        var forwardingEnabled: Boolean = false
+        var forwardingConfig: ForwardingConfig? = null
         var recordingEnabled: Boolean = false
+
+        class ForwardingConfig(
+            val forwardingEnabled: Boolean = false,
+            val origin: String)
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, RequestForwardingAndRecordingFeature> {
+        private val logger: Logger = LoggerFactory.getLogger("RequestForwardingAndRecordingFeature")
+
         override val key = AttributeKey<RequestForwardingAndRecordingFeature>("RequestRecording")
 
         override fun install(
@@ -18,12 +66,11 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
             configure: Configuration.() -> Unit
         ): RequestForwardingAndRecordingFeature {
             val requestRecording = RequestForwardingAndRecordingFeature(
-                RequestForwardingAndRecordingFeature.Configuration().apply(configure)
+                Configuration().apply(configure)
             )
-//            todo find out which phase we must bind to
-            /*pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
-                tokenReplace.intercept(this)
-            }*/
+            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
+                requestRecording.intercept(this)
+            }
             return requestRecording
         }
     }

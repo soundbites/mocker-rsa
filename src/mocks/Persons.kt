@@ -5,9 +5,9 @@ import io.ktor.routing.*
 import nl.jcraane.mocker.respondContents
 
 fun Route.persons() {
-    get("persons") {
-        call.respondContents("/responses/persons.json")
-    }
+//    get("persons") {
+//        call.respondContents("/responses/persons.json")
+//    }
 
     post("persons") {
         call.respond(HttpStatusCode.Created)

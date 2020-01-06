@@ -12,6 +12,7 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import nl.jcraane.mocker.features.DetailLoggingFeature
+import nl.jcraane.mocker.features.RequestForwardingAndRecordingFeature
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
 import org.slf4j.event.Level
@@ -49,19 +50,23 @@ fun Application.module() {
         header("X-Engine", "Ktor") // will send this header with each response
     }
     install(TokenReplaceFeature) {
-        hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(mapOf(
-            "Android" to "10.0.2.2",
-            "ios" to "localhost"
-        ))
+        hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(
+            mapOf(
+                "Android" to "10.0.2.2",
+                "ios" to "localhost"
+            )
+        )
     }
     install(DetailLoggingFeature) {
         logDetails = DetailLoggingFeature.Configuration.LogDetail.values().toList()
     }
-
+    install(RequestForwardingAndRecordingFeature) {
+        forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(true, "http://localhost:8081")
+    }
 
 //    Use interceptors for global logic.
     intercept(ApplicationCallPipeline.Call) {
-//        delay(1500)
+        //        delay(1500)
     }
 
     routing {
