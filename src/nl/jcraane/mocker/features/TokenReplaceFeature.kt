@@ -34,7 +34,6 @@ class TokenReplaceFeature(private val configuration: Configuration) {
         return keyWithTokens
     }
 
-    //    todo add ip replacement based on user-agent header.
     class Configuration {
         var tokens: Map<String, String> = emptyMap()
         var hostIpReplacementStrategy: HostIpReplaceStrategy = StaticHostIpReplacementStrategy("localhost")
@@ -45,19 +44,19 @@ class TokenReplaceFeature(private val configuration: Configuration) {
         const val TOKEN_END = "}"
         const val HOST_IP = "${TOKEN_START}HOST_IP$TOKEN_END"
 
-        override val key = AttributeKey<TokenReplaceFeature>("CORS")
+        override val key = AttributeKey<TokenReplaceFeature>("TokenReplace")
 
         override fun install(
             pipeline: ApplicationCallPipeline,
             configure: Configuration.() -> Unit
         ): TokenReplaceFeature {
-            val cors = TokenReplaceFeature(
+            val tokenReplace = TokenReplaceFeature(
                 Configuration().apply(configure)
             )
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
-                cors.intercept(this)
+                tokenReplace.intercept(this)
             }
-            return cors
+            return tokenReplace
         }
     }
 }
