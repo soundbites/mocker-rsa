@@ -6,12 +6,16 @@ import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
+import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.response.readText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.request.httpMethod
+import io.ktor.request.path
 import io.ktor.request.uri
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
@@ -29,21 +33,35 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
             val subject = context.subject
             val call = context.call
             if (subject is HttpStatusCode && subject == HttpStatusCode.NotFound) {
-                val originUrl = "${forwarding.origin}/${call.request.uri}"
+                val originUrl = "${forwarding.origin}/${call.request.path()}"
                 logger.info("Request to ${call.request.uri} not found, trying $originUrl ")
-                try {
-                    val result = httpClient.call(originUrl)
-                    val response = result.response
-                    if (response.status.isSuccess()) {
-                        val text = response.readText(Charset.forName("UTF-8"))
-                        context.proceedWith(TextContent(text, response.contentType() ?: ContentType.Any, response.status))
-                    } else {
-                        logger.info("Request to $originUrl failed, sending 500")
-                    }
-                } catch (e: Exception) {
-                    logger.info("Request to $originUrl failed, sending 500")
-                }
+                makeRequestToOriginAndReturnResponse(originUrl, call, context)
             }
+        }
+    }
+
+    private suspend fun makeRequestToOriginAndReturnResponse(
+        originUrl: String,
+        call: ApplicationCall,
+        context: PipelineContext<Any, ApplicationCall>
+    ) {
+        try {
+            val result = httpClient.call(originUrl) {
+                method = call.request.httpMethod
+                call.request.queryParameters.forEach { key, values ->
+                    values.forEach { value -> parameter(key, value) }
+                }
+//                todo add body if any
+            }
+            val response = result.response
+            if (response.status.isSuccess()) {
+                val text = response.readText(Charset.forName("UTF-8"))
+                context.proceedWith(TextContent(text, response.contentType() ?: ContentType.Any, response.status))
+            } else {
+                logger.info("Request to $originUrl failed, sending 500")
+            }
+        } catch (e: Exception) {
+            logger.info("Request to $originUrl failed, sending 500")
         }
     }
 
@@ -53,7 +71,8 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
 
         class ForwardingConfig(
             val enabled: Boolean = false,
-            val origin: String)
+            val origin: String
+        )
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, RequestForwardingAndRecordingFeature> {
