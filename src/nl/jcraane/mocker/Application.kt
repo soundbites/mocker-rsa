@@ -10,7 +10,10 @@ import io.ktor.http.content.static
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import nl.jcraane.mocker.features.StaticHostIpReplacementStrategy
+import nl.jcraane.mocker.features.TokenReplaceFeature
 import persons
+import java.net.InetAddress
 
 fun main(args: Array<String>) {
     //io.ktor.server.netty.main(args) // Manually using Netty's EngineMain
@@ -41,11 +44,13 @@ fun Application.module() {
         header("X-Engine", "Ktor") // will send this header with each response
     }
 
-//    todo add config replace values.
-//    install(TokenReplaceFeature)
+    install(TokenReplaceFeature) {
+        hostIpReplaceStrategy = StaticHostIpReplacementStrategy("10.0.2.2")
+    }
 
 //    Use interceptors for global logic.
     intercept(ApplicationCallPipeline.Call) {
+        InetAddress.getLocalHost().hostAddress
 //        delay(1500)
     }
 
@@ -59,3 +64,4 @@ fun Application.module() {
         persons()
     }
 }
+
