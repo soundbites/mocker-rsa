@@ -11,6 +11,7 @@ import io.ktor.http.content.static
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import nl.jcraane.mocker.features.DetailLoggingFeature
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
 import org.slf4j.event.Level
@@ -47,6 +48,7 @@ fun Application.module() {
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response
     }
+    install(DetailLoggingFeature)
 
     install(TokenReplaceFeature) {
         hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(mapOf(
