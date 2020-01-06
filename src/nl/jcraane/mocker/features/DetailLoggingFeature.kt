@@ -85,10 +85,6 @@ class DetailLoggingFeature(private val configuration: Configuration) {
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, DetailLoggingFeature> {
         private val logger: Logger = LoggerFactory.getLogger("DetailLoggingFeature")
 
-        const val TOKEN_START = "{"
-        const val TOKEN_END = "}"
-        const val HOST_IP = "${TOKEN_START}HOST_IP$TOKEN_END"
-
         override val key = AttributeKey<DetailLoggingFeature>("TokenReplace")
 
         override fun install(
