@@ -48,7 +48,9 @@ fun Application.module() {
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response
     }
-    install(DetailLoggingFeature)
+    install(DetailLoggingFeature) {
+        logDetails = DetailLoggingFeature.Configuration.LogDetail.values().toList()
+    }
 
     install(TokenReplaceFeature) {
         hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(mapOf(

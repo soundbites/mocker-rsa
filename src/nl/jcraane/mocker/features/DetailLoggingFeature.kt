@@ -17,28 +17,42 @@ import org.slf4j.LoggerFactory
 class DetailLoggingFeature(private val configuration: Configuration) {
     suspend fun intercept(context: PipelineContext<Any, ApplicationCall>) {
         val call = context.call
-        val body = call.receiveText()
 
-        logger.info("REQUEST HEADERS START")
-        logHeaders(call.request.headers)
-        logger.info("REQUEST HEADERS END")
-
-        logger.info("RESPONSE HEADERS START")
-        logResponseHeaders(call.response.headers)
-        logger.info("RESPONSE HEADERS END")
-
-        if (body.isNotEmpty()) {
-            logger.info("REQUEST BODY START")
-            logger.info(body)
-            logger.info("REQUEST BODY END")
+        if (configuration.logDetails.contains(Configuration.LogDetail.REQUEST_HEADERS)) {
+            log("REQUEST HEADERS") {
+                logHeaders(call.request.headers)
+            }
         }
 
-        val message = context.subject
-        if (message is TextContent) {
-            logger.info("RESPONSE BODY START")
-            logger.info(message.text)
-            logger.info("RESPONSE BODY END")
+        if (configuration.logDetails.contains(Configuration.LogDetail.RESPONSE_HEADERS)) {
+            log("RESPONSE HEADERS") {
+                logResponseHeaders(call.response.headers)
+            }
         }
+
+        if (configuration.logDetails.contains(Configuration.LogDetail.REQUEST_BODY)) {
+            val body = call.receiveText()
+            if (body.isNotEmpty()) {
+                log("REQUEST BODY") {
+                    logger.info(body)
+                }
+            }
+        }
+
+        if (configuration.logDetails.contains(Configuration.LogDetail.RESPONSE_BODY)) {
+            val message = context.subject
+            if (message is TextContent) {
+                logger.info("RESPONSE BODY START")
+                logger.info(message.text)
+                logger.info("RESPONSE BODY END")
+            }
+        }
+    }
+
+    private fun log(detail: String, block: () -> Unit) {
+        logger.info("$detail START")
+        block()
+        logger.info("$detail END")
     }
 
     private fun logHeaders(headers: Headers) {
@@ -58,9 +72,15 @@ class DetailLoggingFeature(private val configuration: Configuration) {
     }
 
     class Configuration() {
+        var logDetails = LogDetail.values().toList()
 
+        enum class LogDetail {
+            REQUEST_HEADERS,
+            RESPONSE_HEADERS,
+            REQUEST_BODY,
+            RESPONSE_BODY
+        }
     }
-
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, DetailLoggingFeature> {
         private val logger: Logger = LoggerFactory.getLogger("DetailLoggingFeature")
