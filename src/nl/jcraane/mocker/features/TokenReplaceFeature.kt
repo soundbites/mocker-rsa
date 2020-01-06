@@ -15,7 +15,7 @@ class TokenReplaceFeature(private val configuration: Configuration) {
         val message = context.subject
         if (message is TextContent) {
             var replaced = message.text
-            replaced = replaced.replace(HOST_IP, configuration.hostIpReplaceStrategy.getHostIp(call))
+            replaced = replaced.replace(HOST_IP, configuration.hostIpReplacementStrategy.getHostIp(call))
             configuration.tokens.forEach { (key, value) ->
                 replaced = replaced.replace(getKey(key), value)
             }
@@ -37,7 +37,7 @@ class TokenReplaceFeature(private val configuration: Configuration) {
     //    todo add ip replacement based on user-agent header.
     class Configuration {
         var tokens: Map<String, String> = emptyMap()
-        var hostIpReplaceStrategy: HostIpReplaceStrategy = StaticHostIpReplacementStrategy("localhost")
+        var hostIpReplacementStrategy: HostIpReplaceStrategy = StaticHostIpReplacementStrategy("localhost")
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, TokenReplaceFeature> {

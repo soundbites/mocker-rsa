@@ -10,7 +10,6 @@ import io.ktor.http.content.static
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import nl.jcraane.mocker.features.StaticHostIpReplacementStrategy
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
 import persons
@@ -46,7 +45,7 @@ fun Application.module() {
     }
 
     install(TokenReplaceFeature) {
-        hostIpReplaceStrategy = UserAgentHostIpReplacementStrategy(mapOf(
+        hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(mapOf(
             "Android" to "10.0.2.2",
             "ios" to "localhost"
         ))
