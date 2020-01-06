@@ -25,7 +25,7 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
 
     suspend fun intercept(context: PipelineContext<Any, ApplicationCall>) {
         val forwarding = configuration.forwardingConfig
-        if (forwarding != null) {
+        if (forwarding != null && forwarding.enabled) {
             val subject = context.subject
             val call = context.call
             if (subject is HttpStatusCode && subject == HttpStatusCode.NotFound) {
@@ -52,7 +52,7 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
         var recordingEnabled: Boolean = false
 
         class ForwardingConfig(
-            val forwardingEnabled: Boolean = false,
+            val enabled: Boolean = false,
             val origin: String)
     }
 
