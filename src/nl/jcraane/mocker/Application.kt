@@ -12,6 +12,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import nl.jcraane.mocker.features.StaticHostIpReplacementStrategy
 import nl.jcraane.mocker.features.TokenReplaceFeature
+import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
 import persons
 import java.net.InetAddress
 
@@ -45,7 +46,10 @@ fun Application.module() {
     }
 
     install(TokenReplaceFeature) {
-        hostIpReplaceStrategy = StaticHostIpReplacementStrategy("10.0.2.2")
+        hostIpReplaceStrategy = UserAgentHostIpReplacementStrategy(mapOf(
+            "Android" to "10.0.2.2",
+            "ios" to "localhost"
+        ))
     }
 
 //    Use interceptors for global logic.
