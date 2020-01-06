@@ -19,7 +19,9 @@ class TokenReplaceFeature(private val configuration: Configuration) {
             configuration.tokens.forEach { (key, value) ->
                 replaced = replaced.replace(getKey(key), value)
             }
-            context.proceedWith(TextContent(replaced, message.contentType, call.response.status()))
+            if (replaced != message.text) {
+                context.proceedWith(TextContent(replaced, message.contentType, call.response.status()))
+            }
         }
     }
 
