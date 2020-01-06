@@ -52,7 +52,6 @@ fun Application.module() {
 
 //    Use interceptors for global logic.
     intercept(ApplicationCallPipeline.Call) {
-        InetAddress.getLocalHost().hostAddress
 //        delay(1500)
     }
 
