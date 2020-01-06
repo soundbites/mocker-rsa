@@ -91,13 +91,13 @@ class DetailLoggingFeature(private val configuration: Configuration) {
             pipeline: ApplicationCallPipeline,
             configure: Configuration.() -> Unit
         ): DetailLoggingFeature {
-            val tokenReplace = DetailLoggingFeature(
+            val detailLogging = DetailLoggingFeature(
                 Configuration().apply(configure)
             )
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
-                tokenReplace.intercept(this)
+                detailLogging.intercept(this)
             }
-            return tokenReplace
+            return detailLogging
         }
     }
 }
