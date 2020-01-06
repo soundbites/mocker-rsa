@@ -16,6 +16,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.request.httpMethod
 import io.ktor.request.path
+import io.ktor.request.receiveText
 import io.ktor.request.uri
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
@@ -51,10 +52,14 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
                 call.request.queryParameters.forEach { key, values ->
                     values.forEach { value -> parameter(key, value) }
                 }
-//                todo add body if any
+                val body = call.receiveText()
+                if (body.isNotEmpty()) {
+                    this.body = body
+                }
             }
             val response = result.response
             if (response.status.isSuccess()) {
+//                todo record response here in separate code.
                 val text = response.readText(Charset.forName("UTF-8"))
                 context.proceedWith(TextContent(text, response.contentType() ?: ContentType.Any, response.status))
             } else {
