@@ -35,7 +35,6 @@ fun Application.module() {
         method(HttpMethod.Delete)
         method(HttpMethod.Patch)
         header(HttpHeaders.Authorization)
-        header("MyCustomHeader")
         allowCredentials = true
         anyHost()
     }
