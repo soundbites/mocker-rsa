@@ -1,7 +1,8 @@
 [
   {
     "id": 1,
-    "name": "John"
+    "name": "John",
+    "link": "{HOST_IP}"
   },
   {
     "id": 2,
