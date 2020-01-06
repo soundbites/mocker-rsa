@@ -2,6 +2,7 @@ package nl.jcraane.mocker
 
 import io.ktor.application.*
 import io.ktor.features.CORS
+import io.ktor.features.CallLogging
 import io.ktor.features.DefaultHeaders
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -12,6 +13,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
+import org.slf4j.event.Level
 import persons
 import java.net.InetAddress
 
@@ -39,6 +41,9 @@ fun Application.module() {
         anyHost()
     }
 
+    install(CallLogging) {
+        level = Level.DEBUG
+    }
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response
     }
