@@ -48,16 +48,16 @@ fun Application.module() {
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response
     }
-    install(DetailLoggingFeature) {
-        logDetails = DetailLoggingFeature.Configuration.LogDetail.values().toList()
-    }
-
     install(TokenReplaceFeature) {
         hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(mapOf(
             "Android" to "10.0.2.2",
             "ios" to "localhost"
         ))
     }
+    install(DetailLoggingFeature) {
+        logDetails = DetailLoggingFeature.Configuration.LogDetail.values().toList()
+    }
+
 
 //    Use interceptors for global logic.
     intercept(ApplicationCallPipeline.Call) {
