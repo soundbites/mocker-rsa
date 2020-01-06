@@ -7,7 +7,7 @@ interface HostIpReplaceStrategy {
     fun getHostIp(call: ApplicationCall? = null): String
 }
 
-class StaticHostIpReplacementStrategy(private val staticValue: String) : HostIpReplaceStrategy {
+class StaticHostIpReplacementStrategy(private val staticValue: String = "localhost") : HostIpReplaceStrategy {
     override fun getHostIp(call: ApplicationCall?) = staticValue
 }
 
