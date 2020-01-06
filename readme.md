@@ -1,4 +1,4 @@
-#Mocker
+# Mocker
 
 Mocker is a Ktor based server application which uses some extension methods and auto-reload to provide fast, flexible and easy mocking
 of services using Ktor.
@@ -56,3 +56,49 @@ To run Mocker with auto-reload do the following:
 2. Run runMocker.sh This will run the application (which is configured using auto-reload so that when the sources are re-compiled, the changes are piked up by the class loader)
 
 To stop the application and/or auto-compile issue ctrl-c in both terminal windows.
+
+## Advanced usage
+
+### replace variables in responses
+
+Replacing variables in responses have different use cases. Consider the example of when a response contains an absolute URL to another resource (a PDF for example). 
+
+```
+{
+    "name": "invoice",
+    "link": "http://localhost/invoice.pdf",
+    "greeting", "Hello something"
+}
+```
+
+And you want the host to be localhost for iOS user-agents and 10.0.2.2 for Android emulator user-agents. For this, the TokenReplaceFeature feature can be used. This feature can replace arbitrary keys and some fixed keys with more advanced replacement strategies. The following example replaces the {NAME} key with something fixed and {HOST_IP} with a host identifier based on the user-agent:
+
+```
+{
+    "name": "invoice",
+    "link": "http://{HOST_IP}/invoice.pdf",
+    "greeting", "Hello {NAME}"
+}
+
+install(TokenReplaceFeature) {
+    tokens = mapOf(
+        "NAME" to "John"
+    )
+    hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(mapOf(
+        "Android" to "10.0.2.2",
+        "ios" to "localhost"
+    ))
+}
+```  
+
+### Detailed logging
+
+To log more than just the path, the DetailLoggingFeature can be used. See the LogDetail enum for the items that
+can be logged. Since Logback is used, logging can easily be routed to a file if desired. The following example
+configured logging the request headers and bodies:
+
+```
+install(DetailLoggingFeature) {
+    logDetails = listOf(DetailLoggingFeature.Configuration.LogDetail.REQUEST_HEADERS, DetailLoggingFeature.Configuration.LogDetail.REQUEST_BODY)
+}
+```
