@@ -55,11 +55,14 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
             if (response.status.isSuccess()) {
                 val responseBody = response.readText(Charset.forName("UTF-8"))
 
+                val contentType = response.contentType() ?: ContentType.Any
                 if (configuration.recordingEnabled) {
-                    recorder.record(RecordedEntry(call.request.path(), call.request.httpMethod.value, responseBody))
+                    Method.create(call.request.httpMethod)?.also {
+                        recorder.record(RecordedEntry(call.request.path(), it, contentType, responseBody))
+                    }
                 }
 
-                context.proceedWith(TextContent(responseBody, response.contentType() ?: ContentType.Any, response.status))
+                context.proceedWith(TextContent(responseBody, contentType, response.status))
             } else {
                 logger.info("Request to $originUrl failed")
             }
