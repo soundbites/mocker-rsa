@@ -41,7 +41,7 @@ interface Persister {
     fun persist(recorder: Recorder)
 }
 
-class KtFilePersister(val fullPath: String) : Persister {
+class KtFilePersister(private val fullPath: String) : Persister {
     private val startFile = """
         import io.ktor.application.call
         import io.ktor.http.HttpStatusCode
@@ -54,6 +54,7 @@ class KtFilePersister(val fullPath: String) : Persister {
     private val endFile = "}\n"
 
     override fun persist(recorder: Recorder) {
+//        todo check if exist and use unique id
         File(fullPath).delete()
 
         val fileContents = StringBuilder().apply {
