@@ -6,6 +6,7 @@ import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.response.readText
@@ -48,14 +49,7 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
     ) {
         try {
             val result = httpClient.call(originUrl) {
-                method = call.request.httpMethod
-                call.request.queryParameters.forEach { key, values ->
-                    values.forEach { value -> parameter(key, value) }
-                }
-                val body = call.receiveText()
-                if (body.isNotEmpty()) {
-                    this.body = body
-                }
+                buildRequest(call)
             }
             val response = result.response
             if (response.status.isSuccess()) {
@@ -63,10 +57,21 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
                 val text = response.readText(Charset.forName("UTF-8"))
                 context.proceedWith(TextContent(text, response.contentType() ?: ContentType.Any, response.status))
             } else {
-                logger.info("Request to $originUrl failed, sending 500")
+                logger.info("Request to $originUrl failed")
             }
         } catch (e: Exception) {
-            logger.info("Request to $originUrl failed, sending 500")
+            logger.info("Request to $originUrl failed")
+        }
+    }
+
+    private suspend fun HttpRequestBuilder.buildRequest(call: ApplicationCall) {
+        method = call.request.httpMethod
+        call.request.queryParameters.forEach { key, values ->
+            values.forEach { value -> parameter(key, value) }
+        }
+        val body = call.receiveText()
+        if (body.isNotEmpty()) {
+            this.body = body
         }
     }
 
