@@ -1,4 +1,4 @@
-package nl.jcraane.mocker.features
+package nl.jcraane.mocker.features.forwarding
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
@@ -7,7 +7,6 @@ import io.ktor.application.call
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.response.readText
 import io.ktor.http.ContentType
@@ -28,6 +27,7 @@ import java.nio.charset.Charset
 
 class RequestForwardingAndRecordingFeature(private val configuration: Configuration) {
     private val httpClient = HttpClient()
+    private val recorder = Recorder()
 
     suspend fun intercept(context: PipelineContext<Any, ApplicationCall>) {
         val forwarding = configuration.forwardingConfig
@@ -53,9 +53,13 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
             }
             val response = result.response
             if (response.status.isSuccess()) {
-//                todo record response here in separate code.
-                val text = response.readText(Charset.forName("UTF-8"))
-                context.proceedWith(TextContent(text, response.contentType() ?: ContentType.Any, response.status))
+                val responseBody = response.readText(Charset.forName("UTF-8"))
+
+                if (configuration.recordingEnabled) {
+                    recorder.record(RecordedEntry(call.request.path(), call.request.httpMethod.value, responseBody))
+                }
+
+                context.proceedWith(TextContent(responseBody, response.contentType() ?: ContentType.Any, response.status))
             } else {
                 logger.info("Request to $originUrl failed")
             }
@@ -95,7 +99,9 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
             configure: Configuration.() -> Unit
         ): RequestForwardingAndRecordingFeature {
             val requestRecording = RequestForwardingAndRecordingFeature(
-                Configuration().apply(configure)
+                Configuration().apply(
+                    configure
+                )
             )
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
                 requestRecording.intercept(this)

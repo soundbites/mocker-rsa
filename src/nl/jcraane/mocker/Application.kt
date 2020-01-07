@@ -13,12 +13,11 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import nl.jcraane.mocker.features.DetailLoggingFeature
-import nl.jcraane.mocker.features.RequestForwardingAndRecordingFeature
+import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
 import org.slf4j.event.Level
 import persons
-import java.net.InetAddress
 
 fun main(args: Array<String>) {
     //io.ktor.server.netty.main(args) // Manually using Netty's EngineMain
@@ -64,6 +63,7 @@ fun Application.module() {
     }
     install(RequestForwardingAndRecordingFeature) {
         forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(true, "http://localhost:8081")
+        recordingEnabled = true
     }
 
 //    Use interceptors for global logic.
