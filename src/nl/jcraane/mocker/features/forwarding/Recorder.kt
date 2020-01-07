@@ -4,9 +4,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import java.io.File
 
-class Recorder {
+class Recorder(private val persister: Persister) {
     val data: MutableSet<RecordedEntry> = mutableSetOf()
-    private val persister = KtFilePersister("Recording.kt")
 
     fun record(entry: RecordedEntry) {
         data += entry
@@ -22,7 +21,8 @@ data class RecordedEntry(
     val requestPath: String,
     val method: Method,
     val contentType: ContentType,
-    val responseBody: String = "")
+    val responseBody: String = ""
+)
 
 enum class Method(val methodName: String) {
     GET("get"),
@@ -33,7 +33,7 @@ enum class Method(val methodName: String) {
 
     companion object {
         fun create(httpMethod: HttpMethod) =
-            values().filter { it.methodName.equals(httpMethod.value, true) }.firstOrNull()
+            values().firstOrNull { it.methodName.equals(httpMethod.value, true) }
     }
 }
 
@@ -41,13 +41,23 @@ interface Persister {
     fun persist(recorder: Recorder)
 }
 
-class KtFilePersister(private val fullPath: String) : Persister {
+class WarningPersister : Persister {
+    override fun persist(recorder: Recorder) {
+        throw IllegalStateException("When recording is enabled, make sure a Persister is configured.")
+    }
+}
+
+class KtFilePersister(
+    private val ktFilePath: String,
+    private val resourcePath: String
+) : Persister {
     private val startFile = """
         import io.ktor.application.call
         import io.ktor.http.HttpStatusCode
         import io.ktor.response.respond
         import io.ktor.response.respondText
         import io.ktor.routing.*
+        import nl.jcraane.mocker.respondContents
         
         fun Route.recorded() {
         """.trimIndent()
@@ -55,45 +65,31 @@ class KtFilePersister(private val fullPath: String) : Persister {
 
     override fun persist(recorder: Recorder) {
 //        todo check if exist and use unique id
-        File(fullPath).delete()
+        File(ktFilePath).delete()
 
         val fileContents = StringBuilder().apply {
             append(startFile)
 
             recorder.data.map {
-                when (it.method) {
-                    Method.GET -> {
-                        append("get(\"${it.requestPath}\") {\n")
-                        endMethod(it)
-                    }
-                    Method.POST -> {
-                        append("post(\"${it.requestPath}\") {\n")
-                        endMethod(it)
-                    }
-                    Method.PUT -> {
-                        append("put(\"${it.requestPath}\") {\n")
-                        endMethod(it)
-                    }
-                    Method.DELETE -> {
-                        append("delete(\"${it.requestPath}\") {\n")
-                        endMethod(it)
-                    }
-                    Method.PATCH -> {
-                        append("patch(\"${it.requestPath}\") {\n")
-                        endMethod(it)
-                    }
-                }
+                append("${it.method.methodName}(\"${it.requestPath}\") {\n")
+                endMethod(it)
             }
 
             append(endFile)
         }.toString()
 
-        File(fullPath).writeText(fileContents)
+        File(ktFilePath).writeText(fileContents)
     }
 
     private fun StringBuilder.endMethod(it: RecordedEntry): java.lang.StringBuilder? {
         if (it.responseBody.isNotEmpty()) {
-            append("call.respondText(\"\"\"${it.responseBody}\"\"\")\n")
+//            todo append filename based on contenttype.
+            val resourceFileName = "${it.method.methodName}_${it.requestPath.replace("/", "_")}.json"
+            File(resourcePath).mkdirs()
+            File(resourcePath, resourceFileName).writeText(it.responseBody)
+            val classPathResourcePath = "/responses/recorded/$resourceFileName"
+//            todo use correct content type and status
+            append("call.respondContents(\"${classPathResourcePath}\")\n")
         } else {
             append("call.respond(HttpStatusCode.Created)\n")
         }

@@ -27,7 +27,7 @@ import java.nio.charset.Charset
 
 class RequestForwardingAndRecordingFeature(private val configuration: Configuration) {
     private val httpClient = HttpClient()
-    private val recorder = Recorder()
+    private val recorder = Recorder(configuration.recordingConfig?.persister ?: WarningPersister())
 
     suspend fun intercept(context: PipelineContext<Any, ApplicationCall>) {
         val forwarding = configuration.forwardingConfig
@@ -56,7 +56,7 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
                 val responseBody = response.readText(Charset.forName("UTF-8"))
 
                 val contentType = response.contentType() ?: ContentType.Any
-                if (configuration.recordingEnabled) {
+                if (configuration.recordingConfig?.enabled == true) {
                     Method.create(call.request.httpMethod)?.also {
                         recorder.record(RecordedEntry(call.request.path(), it, contentType, responseBody))
                     }
@@ -84,11 +84,16 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
 
     class Configuration() {
         var forwardingConfig: ForwardingConfig? = null
-        var recordingEnabled: Boolean = false
+        var recordingConfig: RecorderConfig? = null
 
         class ForwardingConfig(
             val enabled: Boolean = false,
             val origin: String
+        )
+
+        class RecorderConfig(
+            val enabled: Boolean = false,
+            val persister: Persister
         )
     }
 

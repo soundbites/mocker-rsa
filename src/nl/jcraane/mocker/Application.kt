@@ -16,6 +16,7 @@ import nl.jcraane.mocker.features.DetailLoggingFeature
 import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
+import nl.jcraane.mocker.features.forwarding.KtFilePersister
 import org.slf4j.event.Level
 import persons
 
@@ -63,7 +64,13 @@ fun Application.module() {
     }
     install(RequestForwardingAndRecordingFeature) {
         forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(true, "http://localhost:8081")
-        recordingEnabled = true
+        /*recordingConfig = RequestForwardingAndRecordingFeature.Configuration.RecorderConfig(
+            true,
+            KtFilePersister(
+                "<INSERT_PATH>/mocker/src/mocks/Recorded.kt",
+                "<INSERT_PATH>/mocker/resources/responses/recorded/"
+            )
+        )*/
     }
 
 //    Use interceptors for global logic.
