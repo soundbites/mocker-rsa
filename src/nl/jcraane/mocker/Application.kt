@@ -16,12 +16,10 @@ import nl.jcraane.mocker.features.DetailLoggingFeature
 import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
-import nl.jcraane.mocker.features.forwarding.KtFilePersister
 import org.slf4j.event.Level
 import persons
 
-fun main(args: Array<String>) {
-    //io.ktor.server.netty.main(args) // Manually using Netty's EngineMain
+fun main() {
     embeddedServer(
         Netty,
         watchPaths = listOf("mocker"),
@@ -55,7 +53,7 @@ fun Application.module() {
         level = Level.DEBUG
     }
     install(DefaultHeaders) {
-        header("X-Engine", "Ktor") // will send this header with each response
+        header("X-Engine", "Mocker (Ktor)") // will send this header with each response
     }
     install(TokenReplaceFeature) {
         hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(
