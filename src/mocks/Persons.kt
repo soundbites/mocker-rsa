@@ -6,7 +6,7 @@ import io.ktor.routing.*
 import nl.jcraane.mocker.respondContents
 
 fun Route.persons() {
-    /*get("persons") {
+    get("persons") {
         call.respondContents("/responses/persons.json")
     }
 
@@ -20,5 +20,5 @@ fun Route.persons() {
 
     delete("persons") {
         call.respond(HttpStatusCode.NoContent)
-    }*/
+    }
 }

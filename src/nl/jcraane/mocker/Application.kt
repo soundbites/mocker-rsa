@@ -16,6 +16,10 @@ import nl.jcraane.mocker.features.DetailLoggingFeature
 import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
+import nl.jcraane.mocker.features.testing.ChaosMockerFeature
+import nl.jcraane.mocker.features.testing.ChaosMockerFeature.Configuration.RequestMatcher.Companion
+import nl.jcraane.mocker.features.testing.ChaosMockerFeature.Configuration.ResponseTimeBehavior
+import nl.jcraane.mocker.features.testing.ChaosMockerFeature.Configuration.RequestMatcher
 import org.slf4j.event.Level
 import persons
 
@@ -32,6 +36,57 @@ fun main() {
 
 @Suppress("unused") // Referenced in application.conf
 fun Application.module() {
+    defaultFeatures()
+    userDefinedFeatures()
+
+//    Use interceptors for global logic.
+    intercept(ApplicationCallPipeline.Call) {
+        //        delay(1500)
+    }
+
+    // Static routing defined here
+    routing {
+        static("/static") {
+            resources("static")
+        }
+    }
+
+    // Mocks defined here
+    mock(basePath = "api/v1") {
+        persons()
+    }
+}
+
+private fun Application.userDefinedFeatures() {
+    install(TokenReplaceFeature) {
+        hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(
+            mapOf(
+                "Android" to "10.0.2.2",
+                "ios" to "localhost"
+            )
+        )
+    }
+    install(DetailLoggingFeature) {
+        //        logDetails = DetailLoggingFeature.Configuration.LogDetail.values().toList()
+    }
+    install(RequestForwardingAndRecordingFeature) {
+        forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(true, "http://localhost:8081")
+        /*recordingConfig = RequestForwardingAndRecordingFeature.Configuration.RecorderConfig(
+            true,
+            KtFilePersister(
+                "<INSERT_PATH>/mocker/src/mocks/Recorded.kt",
+                "<INSERT_PATH>/mocker/resources/responses/recorded/"
+            )
+        )*/
+    }
+    install(ChaosMockerFeature) {
+//        slowResponseTimes.add(RequestMatcher.get("/"), ResponseTimeBehavior.Fixed(delay = 1500))
+//        slowResponseTimes.add(RequestMatcher.post("/person"), ResponseTimeBehavior.Random(bounds = 500L..1500L))
+//        slowResponseTimes.add("/tasks", ResponseTimeBehavior.FixedRandom(fixedDelay = 250, variableDelay = 500L..1500L))
+    }
+}
+
+private fun Application.defaultFeatures() {
     install(CORS) {
         method(HttpMethod.Options)
         method(HttpMethod.Put)
@@ -54,42 +109,6 @@ fun Application.module() {
     }
     install(DefaultHeaders) {
         header("X-Engine", "Mocker (Ktor)") // will send this header with each response
-    }
-    install(TokenReplaceFeature) {
-        hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(
-            mapOf(
-                "Android" to "10.0.2.2",
-                "ios" to "localhost"
-            )
-        )
-    }
-    install(DetailLoggingFeature) {
-//        logDetails = DetailLoggingFeature.Configuration.LogDetail.values().toList()
-    }
-    install(RequestForwardingAndRecordingFeature) {
-        forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(true, "http://localhost:8081")
-        /*recordingConfig = RequestForwardingAndRecordingFeature.Configuration.RecorderConfig(
-            true,
-            KtFilePersister(
-                "<INSERT_PATH>/mocker/src/mocks/Recorded.kt",
-                "<INSERT_PATH>/mocker/resources/responses/recorded/"
-            )
-        )*/
-    }
-
-//    Use interceptors for global logic.
-    intercept(ApplicationCallPipeline.Call) {
-        //        delay(1500)
-    }
-
-    routing {
-        static("/static") {
-            resources("static")
-        }
-    }
-
-    mock(basePath = "api/v1") {
-        persons()
     }
 }
 

@@ -21,6 +21,7 @@ import io.ktor.request.uri
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
+import nl.jcraane.mocker.features.Method
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.charset.Charset

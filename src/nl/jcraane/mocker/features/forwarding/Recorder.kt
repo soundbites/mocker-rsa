@@ -1,7 +1,7 @@
 package nl.jcraane.mocker.features.forwarding
 
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
+import nl.jcraane.mocker.features.Method
 import java.io.File
 
 class Recorder(private val persister: Persister) {
@@ -23,19 +23,6 @@ data class RecordedEntry(
     val contentType: ContentType,
     val responseBody: String = ""
 )
-
-enum class Method(val methodName: String) {
-    GET("get"),
-    POST("post"),
-    PUT("put"),
-    DELETE("delete"),
-    PATCH("patch");
-
-    companion object {
-        fun create(httpMethod: HttpMethod) =
-            values().firstOrNull { it.methodName.equals(httpMethod.value, true) }
-    }
-}
 
 interface Persister {
     fun persist(recorder: Recorder)
