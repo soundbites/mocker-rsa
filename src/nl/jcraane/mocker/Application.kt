@@ -1,14 +1,14 @@
 package nl.jcraane.mocker
 
 import io.ktor.application.*
-import io.ktor.features.CORS
-import io.ktor.features.CallLogging
-import io.ktor.features.DefaultHeaders
-import io.ktor.features.DoubleReceive
+import io.ktor.features.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
+import io.ktor.request.httpMethod
+import io.ktor.request.path
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -44,6 +44,14 @@ fun Application.module() {
         anyHost()
     }
 
+    install(StatusPages) {
+        status(*HttpStatusCode.allStatusCodes.filter { it.value >= 400 }.toTypedArray()) {
+            log.info("FAILED REQUEST START")
+            val message = "${call.request.httpMethod} ${call.request.path()} failed with status $it"
+            log.info(message)
+            log.info("FAILED REQUEST END")
+        }
+    }
     install(DoubleReceive)
     install(CallLogging) {
         level = Level.DEBUG
@@ -60,7 +68,7 @@ fun Application.module() {
         )
     }
     install(DetailLoggingFeature) {
-        logDetails = DetailLoggingFeature.Configuration.LogDetail.values().toList()
+//        logDetails = DetailLoggingFeature.Configuration.LogDetail.values().toList()
     }
     install(RequestForwardingAndRecordingFeature) {
         forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(true, "http://localhost:8081")

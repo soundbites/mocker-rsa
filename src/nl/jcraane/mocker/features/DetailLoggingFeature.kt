@@ -6,6 +6,8 @@ import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.http.Headers
 import io.ktor.http.content.TextContent
+import io.ktor.request.httpMethod
+import io.ktor.request.path
 import io.ktor.request.receiveText
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.response.ResponseHeaders
@@ -42,9 +44,9 @@ class DetailLoggingFeature(private val configuration: Configuration) {
         if (configuration.logDetails.contains(Configuration.LogDetail.RESPONSE_BODY)) {
             val message = context.subject
             if (message is TextContent) {
-                logger.info("RESPONSE BODY START")
-                logger.info(message.text)
-                logger.info("RESPONSE BODY END")
+                log("RESPONSE BODY") {
+                    logger.info(message.text)
+                }
             }
         }
     }
@@ -71,8 +73,8 @@ class DetailLoggingFeature(private val configuration: Configuration) {
         }
     }
 
-    class Configuration() {
-        var logDetails = LogDetail.values().toList()
+    class Configuration {
+        var logDetails = emptyList<LogDetail>()
 
         enum class LogDetail {
             REQUEST_HEADERS,
@@ -94,7 +96,7 @@ class DetailLoggingFeature(private val configuration: Configuration) {
             val detailLogging = DetailLoggingFeature(
                 Configuration().apply(configure)
             )
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
+            pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) {
                 detailLogging.intercept(this)
             }
             return detailLogging
