@@ -21,13 +21,13 @@ class DetailLoggingFeature(private val configuration: Configuration) {
         val call = context.call
 
         if (configuration.logDetails.contains(Configuration.LogDetail.REQUEST_HEADERS)) {
-            log("REQUEST HEADERS") {
+            log("REQUEST HEADERS", logger) {
                 logHeaders(call.request.headers)
             }
         }
 
         if (configuration.logDetails.contains(Configuration.LogDetail.RESPONSE_HEADERS)) {
-            log("RESPONSE HEADERS") {
+            log("RESPONSE HEADERS", logger) {
                 logResponseHeaders(call.response.headers)
             }
         }
@@ -35,7 +35,7 @@ class DetailLoggingFeature(private val configuration: Configuration) {
         if (configuration.logDetails.contains(Configuration.LogDetail.REQUEST_BODY)) {
             val body = call.receiveText()
             if (body.isNotEmpty()) {
-                log("REQUEST BODY") {
+                log("REQUEST BODY", logger) {
                     logger.info(body)
                 }
             }
@@ -44,17 +44,11 @@ class DetailLoggingFeature(private val configuration: Configuration) {
         if (configuration.logDetails.contains(Configuration.LogDetail.RESPONSE_BODY)) {
             val message = context.subject
             if (message is TextContent) {
-                log("RESPONSE BODY") {
+                log("RESPONSE BODY", logger) {
                     logger.info(message.text)
                 }
             }
         }
-    }
-
-    private fun log(detail: String, block: () -> Unit) {
-        logger.info("$detail START")
-        block()
-        logger.info("$detail END")
     }
 
     private fun logHeaders(headers: Headers) {
@@ -85,8 +79,7 @@ class DetailLoggingFeature(private val configuration: Configuration) {
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, DetailLoggingFeature> {
-        private val logger: Logger = LoggerFactory.getLogger("DetailLoggingFeature")
-
+        val logger: Logger = LoggerFactory.getLogger("DetailLoggingFeature")
         override val key = AttributeKey<DetailLoggingFeature>("DetailLogging")
 
         override fun install(
@@ -100,6 +93,12 @@ class DetailLoggingFeature(private val configuration: Configuration) {
                 detailLogging.intercept(this)
             }
             return detailLogging
+        }
+
+        fun log(detail: String, logger: Logger, block: () -> Unit) {
+            logger.info("$detail START")
+            block()
+            logger.info("$detail END")
         }
     }
 }

@@ -43,13 +43,11 @@ fun Application.module() {
         allowCredentials = true
         anyHost()
     }
-
     install(StatusPages) {
         status(*HttpStatusCode.allStatusCodes.filter { it.value >= 400 }.toTypedArray()) {
-            log.info("FAILED REQUEST START")
-            val message = "${call.request.httpMethod} ${call.request.path()} failed with status $it"
-            log.info(message)
-            log.info("FAILED REQUEST END")
+            DetailLoggingFeature.log("FAILED REQUEST", DetailLoggingFeature.logger) {
+                DetailLoggingFeature.logger.info("${call.request.httpMethod} ${call.request.path()} failed with status $it")
+            }
         }
     }
     install(DoubleReceive)
