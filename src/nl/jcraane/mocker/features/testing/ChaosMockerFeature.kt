@@ -36,22 +36,28 @@ class ChaosMockerFeature(private val configuration: Configuration) {
         sealed class ResponseTimeBehavior {
             abstract suspend fun delay()
 
+            /**
+             * Delays for a fixed amount of time.
+             *
+             * @param delay The time in milliseconds to delay.
+             */
             class Fixed(private val delay: Long) : ResponseTimeBehavior() {
                 override suspend fun delay() {
                     kotlinx.coroutines.delay(delay)
                 }
             }
 
-            class Random(private val bounds: LongRange) : ResponseTimeBehavior() {
-                override suspend fun delay() {
-                    kotlinx.coroutines.delay(kotlin.random.Random.nextLong(bounds.first, bounds.last))
-                }
-            }
-
-            class FixedRandom(private val fixedDelay: Long, private val variableDelay: LongRange) : ResponseTimeBehavior() {
+            /**
+             * Delays for a random amount of time between the specified bounds, optionally increasing this random delay
+             * with a constant value.
+             *
+             * @param variableDelay The random delay is in this range.
+             * @param constantDelay Adds this delay on top of the calculated random delay.
+             */
+            class Random(private val variableDelay: LongRange, private val constantDelay: Long = 0L) : ResponseTimeBehavior() {
                 override suspend fun delay() {
                     kotlinx.coroutines.delay(
-                        fixedDelay + kotlin.random.Random.nextLong(variableDelay.first, variableDelay.last)
+                        constantDelay + kotlin.random.Random.nextLong(variableDelay.first, variableDelay.last)
                     )
                 }
             }

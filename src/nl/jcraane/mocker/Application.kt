@@ -17,7 +17,6 @@ import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeatur
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature
-import nl.jcraane.mocker.features.testing.ChaosMockerFeature.Configuration.RequestMatcher.Companion
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature.Configuration.ResponseTimeBehavior
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature.Configuration.RequestMatcher
 import org.slf4j.event.Level
@@ -80,9 +79,8 @@ private fun Application.userDefinedFeatures() {
         )*/
     }
     install(ChaosMockerFeature) {
-//        slowResponseTimes.add(RequestMatcher.get("/"), ResponseTimeBehavior.Fixed(delay = 1500))
-//        slowResponseTimes.add(RequestMatcher.post("/person"), ResponseTimeBehavior.Random(bounds = 500L..1500L))
-//        slowResponseTimes.add("/tasks", ResponseTimeBehavior.FixedRandom(fixedDelay = 250, variableDelay = 500L..1500L))
+        slowResponseTimes.add(RequestMatcher.get("/"), ResponseTimeBehavior.Fixed(delay = 1500))
+        slowResponseTimes.add(RequestMatcher.post("/person"), ResponseTimeBehavior.Random(variableDelay = 500L..1500L))
     }
 }
 
