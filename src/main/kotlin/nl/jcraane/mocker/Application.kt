@@ -19,6 +19,7 @@ import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature
 import nl.jcraane.mocker.features.testing.ResponseTimeBehavior
 import nl.jcraane.mocker.features.testing.RequestConfig
+import nl.jcraane.mocker.features.testing.StatusCodeBehavior
 import org.slf4j.event.Level
 import persons
 import tasks
@@ -83,6 +84,7 @@ private fun Application.userDefinedFeatures() {
     install(ChaosMockerFeature) {
         slowResponseTimes.add(RequestConfig.get("/api/v1/**"), ResponseTimeBehavior.Fixed(constant = 250))
         slowResponseTimes.add(RequestConfig.post("/api/v1/**"), ResponseTimeBehavior.Random(variable = 500L..1500L, constant = 1500L))
+        errorStatusCodes.add(RequestConfig.delete("/api/v1/tasks"), StatusCodeBehavior(HttpStatusCode.Forbidden))
     }
 }
 

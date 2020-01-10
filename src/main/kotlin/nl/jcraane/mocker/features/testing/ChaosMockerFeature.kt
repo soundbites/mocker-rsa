@@ -5,6 +5,8 @@ import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.http.HttpMethod
+import io.ktor.http.content.HttpStatusCodeContent
+import io.ktor.http.content.TextContent
 import io.ktor.request.ApplicationRequest
 import io.ktor.request.httpMethod
 import io.ktor.request.path
@@ -13,7 +15,10 @@ import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import nl.jcraane.mocker.features.Method
 import nl.jcraane.mocker.prependIfMissing
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.core.util.AntPathMatcher
+import javax.security.auth.Subject
 
 class ChaosMockerFeature(private val configuration: Configuration) {
     private val pathMatcher = AntPathMatcher()
@@ -22,8 +27,13 @@ class ChaosMockerFeature(private val configuration: Configuration) {
         val call = context.call
         findBestMatch(call.request.httpMethod, call.request.path(), configuration.slowResponseTimes.getResponseTimesConfig())?.delay()
         findBestMatch(call.request.httpMethod, call.request.path(), configuration.errorStatusCodes.getStatusCodesConfig())?.also {
-//            todo fix
-//            context.proceedWith()
+            val subject = context.subject
+            if (subject is TextContent) {
+                logger.info("${call.request.httpMethod} ${call.request.path()} fail with $it")
+                context.proceedWith(TextContent(subject.text, subject.contentType, it.statusCode))
+            } else if (subject is HttpStatusCodeContent) {
+                context.proceedWith(HttpStatusCodeContent(it.statusCode))
+            }
         }
     }
 
@@ -63,6 +73,7 @@ class ChaosMockerFeature(private val configuration: Configuration) {
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ChaosMockerFeature> {
+        val logger: Logger = LoggerFactory.getLogger("ChaosMockerFeature")
 
         override val key = AttributeKey<ChaosMockerFeature>("ChaosMocker")
 
