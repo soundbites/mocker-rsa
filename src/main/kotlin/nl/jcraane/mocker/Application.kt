@@ -40,11 +40,6 @@ fun Application.module() {
     defaultFeatures()
     userDefinedFeatures()
 
-//    Use interceptors for global logic.
-    intercept(ApplicationCallPipeline.Call) {
-        //        delay(1500)
-    }
-
     // Static routing defined here
     routing {
         static("/static") {
