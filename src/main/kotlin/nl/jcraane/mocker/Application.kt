@@ -17,7 +17,7 @@ import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeatur
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature
-import nl.jcraane.mocker.features.testing.ChaosMockerFeature.Configuration.ResponseTimeBehavior
+import nl.jcraane.mocker.features.testing.ResponseTimeBehavior
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature.Configuration.RequestMatcher
 import org.slf4j.event.Level
 import persons
