@@ -34,9 +34,7 @@ class ChaosMockerFeature(private val configuration: Configuration) {
             val pathMatch = pathMatcher.match(path, incomingRequest.path)
             pathMatch && (it.key.method == incomingRequest.method || it.key.method == Method.ALL)
         }
-        return matched.toList()
-            .sortedByDescending { it.first.path.length }
-            .firstOrNull()?.second
+        return matched.toList().maxBy { it.first.path.length }?.second
     }
 
     class Configuration {
