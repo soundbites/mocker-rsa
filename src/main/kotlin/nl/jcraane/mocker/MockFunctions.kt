@@ -52,3 +52,11 @@ private fun determineContentTypeOnFileExtensions(resource: String): ContentType 
         ContentType.Text.Plain
     }
 }
+
+fun String.prependIfMissing(value: String): String {
+    return if (!this.startsWith(value)) {
+        "$value$this"
+    } else {
+        this
+    }
+}

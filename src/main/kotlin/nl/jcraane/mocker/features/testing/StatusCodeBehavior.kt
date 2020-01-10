@@ -1,5 +1,7 @@
 package nl.jcraane.mocker.features.testing
 
-sealed class StatusCodeBehavior {
+import io.ktor.http.HttpStatusCode
+
+sealed class StatusCodeBehavior(val statusCode: HttpStatusCode) {
 
 }

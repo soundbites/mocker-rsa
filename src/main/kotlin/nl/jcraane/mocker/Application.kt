@@ -18,7 +18,7 @@ import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature
 import nl.jcraane.mocker.features.testing.ResponseTimeBehavior
-import nl.jcraane.mocker.features.testing.ChaosMockerFeature.Configuration.RequestMatcher
+import nl.jcraane.mocker.features.testing.RequestConfig
 import org.slf4j.event.Level
 import persons
 
@@ -79,8 +79,8 @@ private fun Application.userDefinedFeatures() {
         )*/
     }
     install(ChaosMockerFeature) {
-        slowResponseTimes.add(RequestMatcher.get("/"), ResponseTimeBehavior.Fixed(delay = 1500))
-        slowResponseTimes.add(RequestMatcher.post("/person"), ResponseTimeBehavior.Random(variableDelay = 500L..1500L))
+        slowResponseTimes.add(RequestConfig.get("/"), ResponseTimeBehavior.Fixed(constant = 1500))
+        slowResponseTimes.add(RequestConfig.post("/person"), ResponseTimeBehavior.Random(variable = 500L..1500L))
     }
 }
 

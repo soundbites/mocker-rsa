@@ -4,17 +4,39 @@ import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
+import io.ktor.http.HttpMethod
+import io.ktor.request.ApplicationRequest
 import io.ktor.request.httpMethod
 import io.ktor.request.path
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import nl.jcraane.mocker.features.Method
+import nl.jcraane.mocker.prependIfMissing
+import org.springframework.core.util.AntPathMatcher
 
 class ChaosMockerFeature(private val configuration: Configuration) {
+    private val pathMatcher = AntPathMatcher()
+
     suspend fun intercept(context: PipelineContext<Any, ApplicationCall>) {
         val call = context.call
-        configuration.slowResponseTimes.bestMatchPath(call.request.path(), Method.create(call.request.httpMethod))?.delay()
+        findBestMatch(call.request.httpMethod, call.request.path(), configuration.slowResponseTimes.getResponseTimesConfig())?.delay()
+        findBestMatch(call.request.httpMethod, call.request.path(), configuration.errorStatusCodes.getStatusCodesConfig())?.also {
+//            todo fix
+//            context.proceedWith()
+        }
+    }
+
+    fun <T> findBestMatch(requestMethod: HttpMethod, requestPath: String, config: Map<RequestConfig, T>): T? {
+        val incomingRequest = RequestConfig(Method.create(requestMethod), requestPath.prependIfMissing("/"))
+        val matched = config.filter {
+            val path = it.key.path.prependIfMissing("/")
+            val pathMatch = pathMatcher.match(path, incomingRequest.path)
+            pathMatch && (it.key.method == incomingRequest.method || it.key.method == Method.ALL)
+        }
+        return matched.toList()
+            .sortedByDescending { it.first.path.length }
+            .firstOrNull()?.second
     }
 
     class Configuration {
@@ -22,45 +44,23 @@ class ChaosMockerFeature(private val configuration: Configuration) {
         val errorStatusCodes = ErrorStatusCodes()
 
         class SlowResponseTimes {
-            private val responses = mutableMapOf<RequestMatcher, ResponseTimeBehavior>()
+            private val responses = mutableMapOf<RequestConfig, ResponseTimeBehavior>()
 
-            fun add(matcher: RequestMatcher, responseTimeBehavior: ResponseTimeBehavior) {
-                responses[matcher] = responseTimeBehavior
+            fun add(config: RequestConfig, responseTimeBehavior: ResponseTimeBehavior) {
+                responses[config] = responseTimeBehavior
             }
 
-            //                todo find best match based on path and method. Most specific one wins.
-            fun bestMatchPath(path: String, method: Method): ResponseTimeBehavior? {
-                return responses[RequestMatcher(method, path)]
-            }
+            fun getResponseTimesConfig() = responses.toMap()
         }
 
         class ErrorStatusCodes {
-            private val statusCodes = mutableMapOf<RequestMatcher, StatusCodeBehavior>()
+            private val statusCodes = mutableMapOf<RequestConfig, StatusCodeBehavior>()
 
-            fun add(matcher: RequestMatcher, statusCodeBehavior: StatusCodeBehavior) {
-                statusCodes[matcher] = statusCodeBehavior
+            fun add(config: RequestConfig, statusCodeBehavior: StatusCodeBehavior) {
+                statusCodes[config] = statusCodeBehavior
             }
 
-            //                todo find best match based on path and method. Most specific one wins.
-            fun bestMatchPath(path: String, method: Method): StatusCodeBehavior? {
-                return statusCodes[RequestMatcher(method, path)]
-            }
-        }
-
-        //        todo add dsl method to construct query.
-        data class RequestMatcher(val method: Method = Method.ALL, val path: String) {
-            companion object {
-                fun all(path: String) = RequestMatcher(Method.ALL, path)
-                fun get(path: String) = RequestMatcher(Method.GET, path)
-                fun post(path: String) = RequestMatcher(Method.POST, path)
-                fun put(path: String) = RequestMatcher(Method.PUT, path)
-                fun delete(path: String) = RequestMatcher(Method.DELETE, path)
-                fun patch(path: String) = RequestMatcher(Method.PATCH, path)
-            }
-        }
-
-        companion object {
-            val ALL_PATHS = "/"
+            fun getStatusCodesConfig() = statusCodes.toMap()
         }
     }
 
@@ -78,5 +78,4 @@ class ChaosMockerFeature(private val configuration: Configuration) {
             return chaosMocker
         }
     }
-
 }
