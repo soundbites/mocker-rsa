@@ -81,8 +81,8 @@ private fun Application.userDefinedFeatures() {
         )*/
     }
     install(ChaosMockerFeature) {
-//        slowResponseTimes.add(RequestConfig.get("/api/v1/**"), ResponseTimeBehavior.Fixed(constant = 250))
-//        slowResponseTimes.add(RequestConfig.post("/api/v1/**"), ResponseTimeBehavior.Random(variable = 500L..1500L, constant = 1500L))
+        slowResponseTimes.add(RequestConfig.get("/api/v1/**"), ResponseTimeBehavior.Fixed(constant = 250))
+        slowResponseTimes.add(RequestConfig.post("/api/v1/**"), ResponseTimeBehavior.Random(variable = 500L..1500L, constant = 1500L))
     }
 }
 
