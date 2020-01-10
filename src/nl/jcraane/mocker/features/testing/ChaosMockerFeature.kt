@@ -19,6 +19,7 @@ class ChaosMockerFeature(private val configuration: Configuration) {
 
     class Configuration {
         val slowResponseTimes = SlowResponseTimes()
+        val errorStatusCodes = ErrorStatusCodes()
 
         class SlowResponseTimes {
             private val responses = mutableMapOf<RequestMatcher, ResponseTimeBehavior>()
@@ -27,8 +28,8 @@ class ChaosMockerFeature(private val configuration: Configuration) {
                 responses[matcher] = responseTimeBehavior
             }
 
+            //                todo find best match based on path and method. Most specific one wins.
             fun bestMatchPath(path: String, method: Method): ResponseTimeBehavior? {
-//                todo implement path/method matching and method matching
                 return responses[RequestMatcher(method, path)]
             }
         }
@@ -60,6 +61,19 @@ class ChaosMockerFeature(private val configuration: Configuration) {
                         constantDelay + kotlin.random.Random.nextLong(variableDelay.first, variableDelay.last)
                     )
                 }
+            }
+        }
+
+        class ErrorStatusCodes {
+            private val statusCodes = mutableMapOf<RequestMatcher, StatusCodeBehavior>()
+
+            fun add(matcher: RequestMatcher, statusCodeBehavior: StatusCodeBehavior) {
+                statusCodes[matcher] = statusCodeBehavior
+            }
+
+            //                todo find best match based on path and method. Most specific one wins.
+            fun bestMatchPath(path: String, method: Method): StatusCodeBehavior? {
+                return statusCodes[RequestMatcher(method, path)]
             }
         }
 
