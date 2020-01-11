@@ -17,12 +17,19 @@ class Recorder(private val persister: Persister) {
     }
 }
 
+/**
+ * @param queryParameters parameters for the request. Please note at the moment every name must be unique (this is different
+ * from the http spec where multiple parameters with the same name may exist. Please file an issue if you want this support.).
+ */
 data class RecordedEntry(
     val requestPath: String,
     val method: Method,
     val contentType: ContentType,
-    val responseBody: String = ""
+    val responseBody: String = "",
+    val queryParameters: Set<QueryParam> = emptySet()
 )
+
+data class QueryParam(val name: String, val value: String)
 
 interface Persister {
     fun persist(recorder: Recorder)
@@ -34,7 +41,6 @@ class WarningPersister : Persister {
     }
 }
 
-//todo make distinction between responses and different query params.
 class KtFilePersister(
     private val ktFilePath: String,
     private val resourcePath: String
@@ -52,7 +58,6 @@ class KtFilePersister(
     private val endFile = "}\n"
 
     override fun persist(recorder: Recorder) {
-//        todo check if exist and use unique id
         File(ktFilePath).delete()
 
         val fileContents = StringBuilder().apply {
@@ -69,12 +74,13 @@ class KtFilePersister(
         File(ktFilePath).writeText(fileContents)
     }
 
-    private fun StringBuilder.endMethod(it: RecordedEntry): java.lang.StringBuilder? {
-        if (it.responseBody.isNotEmpty()) {
+//    todo make sure same path with multiple params are unique
+    private fun StringBuilder.endMethod(entry: RecordedEntry): java.lang.StringBuilder? {
+        if (entry.responseBody.isNotEmpty()) {
 //            todo append filename based on contenttype.
-            val resourceFileName = "${it.method.methodName}_${it.requestPath.replace("/", "_")}.json"
+            val resourceFileName = "${entry.method.methodName}${entry.requestPath.replace("/", "_")}${getQueryParamNamePart(entry.queryParameters)}.json"
             File(resourcePath).mkdirs()
-            File(resourcePath, resourceFileName).writeText(it.responseBody)
+            File(resourcePath, resourceFileName).writeText(entry.responseBody)
             val classPathResourcePath = "/responses/recorded/$resourceFileName"
 //            todo use correct content type and status
             append("call.respondContents(\"${classPathResourcePath}\")\n")
@@ -82,5 +88,17 @@ class KtFilePersister(
             append("call.respond(HttpStatusCode.Created)\n")
         }
         return append("}\n\n")
+    }
+
+    private fun getQueryParamNamePart(queryParameters: Set<QueryParam>): String {
+        return buildString {
+            queryParameters
+                .map { "${it.name}_${it.value}" }
+                .forEachIndexed { index, text ->
+                    val prefix = if (index == 0) "?" else "&"
+                    append(prefix)
+                    append(text)
+                }
+        }
     }
 }

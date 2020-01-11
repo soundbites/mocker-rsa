@@ -21,6 +21,7 @@ import io.ktor.request.uri
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
+import io.ktor.util.toMap
 import nl.jcraane.mocker.features.Method
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -59,7 +60,10 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
                 val contentType = response.contentType() ?: ContentType.Any
                 if (configuration.recordingConfig?.enabled == true) {
                     Method.create(call.request.httpMethod)?.also {
-                        recorder.record(RecordedEntry(call.request.path(), it, contentType, responseBody))
+                        val queryParameters = call.request.queryParameters.toMap()
+                            .map { entry -> QueryParam(entry.key, entry.value.first()) }
+                            .toSet()
+                        recorder.record(RecordedEntry(call.request.path(), it, contentType, responseBody, queryParameters))
                     }
                 }
 
@@ -92,9 +96,18 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
             val origin: String
         )
 
+        /**
+         * Configuration for the request recording.
+         *
+         * @param enabled If true, enables request recording (when true, there must be a valid ForwardingConfig available).
+         * @param persister Strategy of how to presist recorded requests and responses.
+         * @param recordQueryParameters If true, all query parameters uniquely define a request and response (instead of only
+         * the request path if recordQueryParameters is false). Default to false.
+         */
         class RecorderConfig(
             val enabled: Boolean = false,
-            val persister: Persister
+            val persister: Persister,
+            val recordQueryParameters: Boolean = false
         )
     }
 
