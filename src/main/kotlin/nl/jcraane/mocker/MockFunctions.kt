@@ -65,7 +65,7 @@ fun String.prependIfMissing(value: String): String {
 fun getQueryParamNamePart(queryParameters: Set<QueryParam>): String {
     return buildString {
         queryParameters
-            .map { "${it.name}_${it.value}" }
+            .map { "${it.name}=${it.value}" }
             .forEachIndexed { index, text ->
                 val prefix = if (index == 0) "?" else "&"
                 append(prefix)

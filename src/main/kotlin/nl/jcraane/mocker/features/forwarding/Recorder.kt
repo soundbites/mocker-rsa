@@ -28,4 +28,8 @@ data class RecordedEntry(
     val queryParameters: Set<QueryParam> = emptySet()
 )
 
-data class QueryParam(val name: String, val value: String)
+data class QueryParam(val name: String, val value: String) {
+    companion object {
+        operator fun invoke(param: Pair<String, String>) = QueryParam(param.first, param.second)
+    }
+}
