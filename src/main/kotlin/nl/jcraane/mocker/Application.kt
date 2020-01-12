@@ -25,7 +25,6 @@ import nl.jcraane.mocker.features.testing.ResponseTimeBehavior
 import nl.jcraane.mocker.features.testing.StatusCodeBehavior
 import org.slf4j.event.Level
 import persons
-import recorded
 import tasks
 
 fun main() {
@@ -57,9 +56,9 @@ fun Application.module() {
         tasks()
     }
 
-    mock {
+    /*mock {
         recorded()
-    }
+    }*/
 }
 
 private fun Application.userDefinedFeatures() {
