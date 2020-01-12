@@ -7,7 +7,7 @@ interface Persister {
     fun persist(recorder: Recorder)
 }
 
-open abstract class BasePersister: Persister {
+abstract class BasePersister: Persister {
     private val writtenEndpoints = mutableSetOf<String>()
 
     fun clear() {
@@ -39,6 +39,7 @@ class KtFilePersister(
         import io.ktor.response.respond
         import io.ktor.response.respondText
         import io.ktor.routing.*
+        import io.ktor.http.ContentType
         import nl.jcraane.mocker.getQueryParamNamePart
         import nl.jcraane.mocker.getQueryParamsAsSet
         import nl.jcraane.mocker.respondContents
@@ -51,7 +52,6 @@ class KtFilePersister(
         clear()
         val contents = buildString {
             append(startFile)
-
             recorder.data.forEach { recordedEntry ->
                 writeResourceMethod(recordedEntry)
             }
@@ -75,11 +75,10 @@ class KtFilePersister(
 
     private fun StringBuilder.endMethod(entry: RecordedEntry, resourceStartPath: String, resourceExtension: String): java.lang.StringBuilder? {
         if (entry.responseBody.isNotEmpty()) {
-//            todo append filename based on contenttype.
-//            todo use correct content type and status
+            val contentType = determineContentTypeOnFileExtensions(resourceExtension)
             append("val queryParamNamePart = getQueryParamNamePart(getQueryParamsAsSet(call.parameters))\n")
             val packageName = getResourcePackageName(resourceFileWriter.rootFolder)
-            append("call.respondContents(\"$packageName${resourceStartPath}\${queryParamNamePart}${resourceExtension}\")\n")
+            append("call.respondContents(\"$packageName${resourceStartPath}\${queryParamNamePart}${resourceExtension}\", $contentType)\n")
         } else {
             append("call.respond(HttpStatusCode.Created)\n")
         }
@@ -95,5 +94,24 @@ class KtFilePersister(
     private fun getResourcePackageName(rootFolder: String): String {
         val resourcePath = Paths.get("src", "main", "resources").toAbsolutePath().toString()
         return rootFolder.substringAfterLast(resourcePath)
+    }
+
+    private fun determineContentTypeOnFileExtensions(resource: String): String {
+        return if (resource.indexOf(".") != -1) {
+            val extension = resource.substringAfterLast(".")
+            when (extension) {
+                "json" -> "ContentType.Application.Json"
+                "pdf" -> "ContentType.Application.Pdf"
+                "xml" -> "ContentType.Application.Xml"
+                "html" -> "ContentType.Text.Html"
+                "jpg" -> "ContentType.Image.JPEG"
+                "jpeg" -> "ContentType.Image.JPEG"
+                "gif" -> "ContentType.Image.GIF"
+                "png" -> "ContentType.Image.PNG"
+                else -> "ContentType.Text.Plain"
+            }
+        } else {
+            "ContentType.Text.Plain"
+        }
     }
 }
