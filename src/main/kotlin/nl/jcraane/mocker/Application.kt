@@ -57,9 +57,9 @@ fun Application.module() {
         tasks()
     }
 
-    /*mock {
-        recorded()
-    }*/
+    mock {
+//        recorded()
+    }
 }
 
 private fun Application.userDefinedFeatures() {

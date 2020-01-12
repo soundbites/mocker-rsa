@@ -5,6 +5,7 @@ import java.io.File
 import java.io.FileWriter
 
 interface WriterStrategy {
+    val rootFolder: String
     fun write(contents: String, fileName: String? = null)
 }
 
@@ -16,7 +17,7 @@ interface WriterStrategy {
  * @param defaultFileName If this writer should always write to the same file (which overrides the fileName passed in the write method (which is optional)).
  */
 class FileWriterStrategy(
-    private val rootFolder: String,
+    override val rootFolder: String,
     private val defaultFileName: String? = null) : WriterStrategy {
 
     override fun write(contents: String, fileName: String?) {
@@ -29,5 +30,4 @@ class FileWriterStrategy(
             it.flush()
         }
     }
-
 }

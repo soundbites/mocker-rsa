@@ -1,12 +1,29 @@
 package nl.jcraane.mocker.features.forwarding
 
 import nl.jcraane.mocker.getQueryParamNamePart
+import java.nio.file.Paths
 
 interface Persister {
     fun persist(recorder: Recorder)
 }
 
-class WarningPersister : Persister {
+open abstract class BasePersister: Persister {
+    private val writtenEndpoints = mutableSetOf<String>()
+
+    fun clear() {
+        writtenEndpoints.clear()
+    }
+
+    fun savePath(path: String) {
+        writtenEndpoints.add(path)
+    }
+
+    fun isWritten(path: String): Boolean {
+        return writtenEndpoints.contains(path)
+    }
+}
+
+class WarningPersister : BasePersister() {
     override fun persist(recorder: Recorder) {
         throw IllegalStateException("When recording is enabled, make sure a Persister is configured.")
     }
@@ -15,7 +32,7 @@ class WarningPersister : Persister {
 class KtFilePersister(
     private val sourceFileWriter: WriterStrategy,
     private val resourceFileWriter: WriterStrategy
-) : Persister {
+) : BasePersister() {
     private val startFile = """
         import io.ktor.application.call
         import io.ktor.http.HttpStatusCode
@@ -31,37 +48,52 @@ class KtFilePersister(
     private val endFile = "}\n"
 
     override fun persist(recorder: Recorder) {
+        clear()
         val contents = buildString {
             append(startFile)
 
-            recorder.data.forEach {
-                append("${it.method.methodName}(\"${it.requestPath}\") {\n")
-                endMethod(it)
+            recorder.data.forEach { recordedEntry ->
+                writeResourceMethod(recordedEntry)
             }
-
             append(endFile)
         }
 
         sourceFileWriter.write(contents)
     }
 
-    //    todo make sure same path with multiple params are unique (use getQueryParamNamePart for this)
-    private fun StringBuilder.endMethod(entry: RecordedEntry): java.lang.StringBuilder? {
+    private fun StringBuilder.writeResourceMethod(entry: RecordedEntry) {
+        val resourceStartPath = "${entry.method.methodName}${entry.requestPath.replace("/", "_")}"
+        val resourceExtension = ".json"
+        val path = "${entry.method.methodName}${entry.requestPath}"
+        if (!isWritten(path)) {
+            append("${entry.method.methodName}(\"${entry.requestPath}\") {\n")
+            endMethod(entry, resourceStartPath, resourceExtension)
+        }
+        writeResourceFile(entry, resourceStartPath, resourceExtension)
+        savePath(path)
+    }
+
+    private fun StringBuilder.endMethod(entry: RecordedEntry, resourceStartPath: String, resourceExtension: String): java.lang.StringBuilder? {
         if (entry.responseBody.isNotEmpty()) {
 //            todo append filename based on contenttype.
-            val queryParamNamePart = getQueryParamNamePart(entry.queryParameters)
-            val resourceStartPath = "${entry.method.methodName}${entry.requestPath.replace("/", "_")}"
-            val resourceExtension = ".json"
-            val resourceFileName = "$resourceStartPath$queryParamNamePart$resourceExtension"
-            resourceFileWriter.write(entry.responseBody, resourceFileName)
 //            todo use correct content type and status
-//            todo use correct subpath to reference in generated source file (/resources/responses)
             append("val queryParamNamePart = getQueryParamNamePart(getQueryParamsAsSet(call.parameters))\n")
-//            todo we still need to add /responses/recorded here (the resource path specified in Application.kt
-            append("call.respondContents(\"${resourceStartPath}\${queryParamNamePart}${resourceExtension}\")\n")
+            val packageName = getResourcePackageName(resourceFileWriter.rootFolder)
+            append("call.respondContents(\"$packageName${resourceStartPath}\${queryParamNamePart}${resourceExtension}\")\n")
         } else {
             append("call.respond(HttpStatusCode.Created)\n")
         }
         return append("}\n\n")
+    }
+
+    private fun writeResourceFile(entry: RecordedEntry, resourceStartPath: String, resourceExtension: String) {
+        val queryParamNamePart = getQueryParamNamePart(entry.queryParameters)
+        val resourceFileName = "$resourceStartPath$queryParamNamePart$resourceExtension"
+        resourceFileWriter.write(entry.responseBody, resourceFileName)
+    }
+
+    private fun getResourcePackageName(rootFolder: String): String {
+        val resourcePath = Paths.get("src", "main", "resources").toAbsolutePath().toString()
+        return rootFolder.substringAfterLast(resourcePath)
     }
 }
