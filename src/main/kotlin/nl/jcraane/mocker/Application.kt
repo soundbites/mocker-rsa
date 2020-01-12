@@ -17,6 +17,7 @@ import io.ktor.server.netty.Netty
 import nl.jcraane.mocker.features.DetailLoggingFeature
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
+import nl.jcraane.mocker.features.forwarding.FileWriterStrategy
 import nl.jcraane.mocker.features.forwarding.KtFilePersister
 import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature
@@ -78,8 +79,11 @@ private fun Application.userDefinedFeatures() {
         recordingConfig = RequestForwardingAndRecordingFeature.Configuration.RecorderConfig(
             true,
             KtFilePersister(
-                "/Users/jamiecraane/develop/IntelliJ/mocker/src/main/kotlin/mocks/Recorded.kt",
-                "/Users/jamiecraane/develop/IntelliJ/mocker/src/main/resources/responses/recorded/"
+                sourceFileWriter = FileWriterStrategy(
+                    rootFolder = "/Users/jamiecraane/develop/IntelliJ/mocker/src/main/kotlin/mocks",
+                    defaultFileName = "Recorded.kt"
+                ),
+                resourceFileWriter = FileWriterStrategy(rootFolder = "/Users/jamiecraane/develop/IntelliJ/mocker/src/main/resources/responses/recorded/")
             ),
             recordQueryParameters = true
         )

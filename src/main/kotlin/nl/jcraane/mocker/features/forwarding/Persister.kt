@@ -1,7 +1,6 @@
 package nl.jcraane.mocker.features.forwarding
 
 import nl.jcraane.mocker.getQueryParamNamePart
-import java.io.File
 
 interface Persister {
     fun persist(recorder: Recorder)
@@ -13,10 +12,9 @@ class WarningPersister : Persister {
     }
 }
 
-// todo move actual writing of data to writer interface for easy unit testing.
 class KtFilePersister(
-    private val ktFilePath: String,
-    private val resourcePath: String
+    private val sourceFileWriter: WriterStrategy,
+    private val resourceFileWriter: WriterStrategy
 ) : Persister {
     private val startFile = """
         import io.ktor.application.call
@@ -33,8 +31,6 @@ class KtFilePersister(
     private val endFile = "}\n"
 
     override fun persist(recorder: Recorder) {
-        File(ktFilePath).delete()
-
         val contents = buildString {
             append(startFile)
 
@@ -46,7 +42,7 @@ class KtFilePersister(
             append(endFile)
         }
 
-        File(ktFilePath).writeText(contents)
+        sourceFileWriter.write(contents)
     }
 
     //    todo make sure same path with multiple params are unique (use getQueryParamNamePart for this)
@@ -57,10 +53,9 @@ class KtFilePersister(
             val resourceStartPath = "${entry.method.methodName}${entry.requestPath.replace("/", "_")}"
             val resourceExtension = ".json"
             val resourceFileName = "$resourceStartPath$queryParamNamePart$resourceExtension"
-            File(resourcePath).mkdirs()
-            File(resourcePath, resourceFileName).writeText(entry.responseBody)
-            val classPathResourcePath = "/responses/recorded/$resourceFileName"
+            resourceFileWriter.write(entry.responseBody, resourceFileName)
 //            todo use correct content type and status
+//            todo use correct subpath to reference in generated source file (/resources/responses)
             append("val queryParamNamePart = getQueryParamNamePart(getQueryParamsAsSet(call.parameters))\n")
 //            todo we still need to add /responses/recorded here (the resource path specified in Application.kt
             append("call.respondContents(\"${resourceStartPath}\${queryParamNamePart}${resourceExtension}\")\n")
