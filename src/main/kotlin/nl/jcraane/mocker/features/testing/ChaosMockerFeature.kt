@@ -7,7 +7,6 @@ import io.ktor.application.call
 import io.ktor.http.HttpMethod
 import io.ktor.http.content.HttpStatusCodeContent
 import io.ktor.http.content.TextContent
-import io.ktor.request.ApplicationRequest
 import io.ktor.request.httpMethod
 import io.ktor.request.path
 import io.ktor.response.ApplicationSendPipeline
@@ -18,7 +17,6 @@ import nl.jcraane.mocker.prependIfMissing
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.util.AntPathMatcher
-import javax.security.auth.Subject
 
 class ChaosMockerFeature(private val configuration: Configuration) {
     private val pathMatcher = AntPathMatcher()
