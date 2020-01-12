@@ -7,6 +7,7 @@ import io.ktor.application.call
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.response.readText
 import io.ktor.http.ContentType
@@ -20,6 +21,7 @@ import io.ktor.request.receiveText
 import io.ktor.request.uri
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
+import io.ktor.util.filter
 import io.ktor.util.pipeline.PipelineContext
 import nl.jcraane.mocker.features.Method
 import nl.jcraane.mocker.getQueryParamsAsSet
@@ -30,6 +32,7 @@ import java.nio.charset.Charset
 class RequestForwardingAndRecordingFeature(private val configuration: Configuration) {
     private val httpClient = HttpClient()
     private val recorder = Recorder(configuration.recordingConfig?.persister ?: WarningPersister())
+    private val ignoredHeaders = setOf("Content-Type", "Host", "Content-Length", "Accept-Encoding")
 
     suspend fun intercept(context: PipelineContext<Any, ApplicationCall>) {
         val forwarding = configuration.forwardingConfig
@@ -60,7 +63,15 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
                 val contentType = response.contentType() ?: ContentType.Any
                 if (configuration.recordingConfig?.enabled == true) {
                     Method.create(call.request.httpMethod)?.also {
-                        recorder.record(RecordedEntry(call.request.path(), it, contentType, responseBody, getQueryParamsAsSet(call.request.queryParameters)))
+                        recorder.record(
+                            RecordedEntry(
+                                call.request.path(),
+                                it,
+                                contentType,
+                                responseBody,
+                                getQueryParamsAsSet(call.request.queryParameters)
+                            )
+                        )
                     }
                 }
 
@@ -76,8 +87,17 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
     private suspend fun HttpRequestBuilder.buildRequest(call: ApplicationCall) {
         method = call.request.httpMethod
         call.request.queryParameters.forEach { key, values ->
-            values.forEach { value -> parameter(key, value) }
+            values.forEach { value ->
+                parameter(key, value)
+            }
         }
+        call.request.headers
+            .filter { key, values -> !ignoredHeaders.contains(key) }
+            .forEach { key, values ->
+                values.forEach { value ->
+                    header(key, value)
+                }
+            }
         val body = call.receiveText()
         if (body.isNotEmpty()) {
             this.body = body
