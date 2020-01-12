@@ -102,3 +102,13 @@ install(DetailLoggingFeature) {
     logDetails = listOf(DetailLoggingFeature.Configuration.LogDetail.REQUEST_HEADERS, DetailLoggingFeature.Configuration.LogDetail.REQUEST_BODY)
 }
 ```
+
+### Chaos Mocker
+
+### Request Forwarding
+
+
+
+### Request Recording
+
+## Examples
