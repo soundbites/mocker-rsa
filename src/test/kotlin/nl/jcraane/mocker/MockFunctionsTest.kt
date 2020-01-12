@@ -13,4 +13,12 @@ class MockFunctionsTest {
             QueryParam("name" to "value"),
             QueryParam("details" to "true"))))
     }
+
+    @Test
+    fun prependIfMissing() {
+        assertEquals("/test", "test".prependIfMissing("/"))
+        assertEquals("/test", "/test".prependIfMissing("/"))
+        assertEquals("/test", "/test".prependIfMissing(""))
+        assertEquals("test", "test".prependIfMissing(""))
+    }
 }
