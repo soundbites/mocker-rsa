@@ -5,6 +5,6 @@ import org.junit.Test
 class RecorderTest {
     @Test
     fun recordSingleGetWithResponse() {
-
+        TODO("Implement unit test")
     }
 }
