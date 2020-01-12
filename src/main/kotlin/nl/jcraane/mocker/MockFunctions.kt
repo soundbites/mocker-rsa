@@ -3,12 +3,14 @@ package nl.jcraane.mocker
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.http.ContentType
+import io.ktor.http.Parameters
 import io.ktor.response.respondBytes
 import io.ktor.response.respondText
 import io.ktor.routing.Route
 import io.ktor.routing.Routing
 import io.ktor.routing.route
 import io.ktor.routing.routing
+import io.ktor.util.toMap
 import nl.jcraane.mocker.features.forwarding.QueryParam
 
 suspend fun ApplicationCall.respondContents(
@@ -73,3 +75,7 @@ fun getQueryParamNamePart(queryParameters: Set<QueryParam>): String {
             }
     }
 }
+
+fun getQueryParamsAsSet(parameters: Parameters) = parameters.toMap()
+    .map { entry -> QueryParam(entry.key, entry.value.first()) }
+    .toSet()

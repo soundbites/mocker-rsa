@@ -13,6 +13,7 @@ class WarningPersister : Persister {
     }
 }
 
+// todo move actual writing of data to writer interface for easy unit testing.
 class KtFilePersister(
     private val ktFilePath: String,
     private val resourcePath: String
@@ -23,6 +24,8 @@ class KtFilePersister(
         import io.ktor.response.respond
         import io.ktor.response.respondText
         import io.ktor.routing.*
+        import nl.jcraane.mocker.getQueryParamNamePart
+        import nl.jcraane.mocker.getQueryParamsAsSet
         import nl.jcraane.mocker.respondContents
         
         fun Route.recorded() {
@@ -32,32 +35,35 @@ class KtFilePersister(
     override fun persist(recorder: Recorder) {
         File(ktFilePath).delete()
 
-        val fileContents = StringBuilder().apply {
+        val contents = buildString {
             append(startFile)
 
-            recorder.data.map {
+            recorder.data.forEach {
                 append("${it.method.methodName}(\"${it.requestPath}\") {\n")
                 endMethod(it)
             }
 
             append(endFile)
-        }.toString()
+        }
 
-        File(ktFilePath).writeText(fileContents)
+        File(ktFilePath).writeText(contents)
     }
 
     //    todo make sure same path with multiple params are unique (use getQueryParamNamePart for this)
     private fun StringBuilder.endMethod(entry: RecordedEntry): java.lang.StringBuilder? {
         if (entry.responseBody.isNotEmpty()) {
 //            todo append filename based on contenttype.
-            val resourceFileName = "${entry.method.methodName}${entry.requestPath.replace("/", "_")}${getQueryParamNamePart(
-                entry.queryParameters
-            )}.json"
+            val queryParamNamePart = getQueryParamNamePart(entry.queryParameters)
+            val resourceStartPath = "${entry.method.methodName}${entry.requestPath.replace("/", "_")}"
+            val resourceExtension = ".json"
+            val resourceFileName = "$resourceStartPath$queryParamNamePart$resourceExtension"
             File(resourcePath).mkdirs()
             File(resourcePath, resourceFileName).writeText(entry.responseBody)
             val classPathResourcePath = "/responses/recorded/$resourceFileName"
 //            todo use correct content type and status
-            append("call.respondContents(\"${classPathResourcePath}\")\n")
+            append("val queryParamNamePart = getQueryParamNamePart(getQueryParamsAsSet(call.parameters))\n")
+//            todo we still need to add /responses/recorded here (the resource path specified in Application.kt
+            append("call.respondContents(\"${resourceStartPath}\${queryParamNamePart}${resourceExtension}\")\n")
         } else {
             append("call.respond(HttpStatusCode.Created)\n")
         }

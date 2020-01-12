@@ -21,8 +21,8 @@ import io.ktor.request.uri
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
-import io.ktor.util.toMap
 import nl.jcraane.mocker.features.Method
+import nl.jcraane.mocker.getQueryParamsAsSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.charset.Charset
@@ -60,10 +60,7 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
                 val contentType = response.contentType() ?: ContentType.Any
                 if (configuration.recordingConfig?.enabled == true) {
                     Method.create(call.request.httpMethod)?.also {
-                        val queryParameters = call.request.queryParameters.toMap()
-                            .map { entry -> QueryParam(entry.key, entry.value.first()) }
-                            .toSet()
-                        recorder.record(RecordedEntry(call.request.path(), it, contentType, responseBody, queryParameters))
+                        recorder.record(RecordedEntry(call.request.path(), it, contentType, responseBody, getQueryParamsAsSet(call.request.queryParameters)))
                     }
                 }
 
