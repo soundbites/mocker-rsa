@@ -9,6 +9,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.Routing
 import io.ktor.routing.route
 import io.ktor.routing.routing
+import nl.jcraane.mocker.features.forwarding.QueryParam
 
 suspend fun ApplicationCall.respondContents(
     classPathResource: String,
@@ -58,5 +59,17 @@ fun String.prependIfMissing(value: String): String {
         "$value$this"
     } else {
         this
+    }
+}
+
+fun getQueryParamNamePart(queryParameters: Set<QueryParam>): String {
+    return buildString {
+        queryParameters
+            .map { "${it.name}_${it.value}" }
+            .forEachIndexed { index, text ->
+                val prefix = if (index == 0) "?" else "&"
+                append(prefix)
+                append(text)
+            }
     }
 }

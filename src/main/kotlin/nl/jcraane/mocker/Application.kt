@@ -1,6 +1,8 @@
 package nl.jcraane.mocker
 
-import io.ktor.application.*
+import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.application.install
 import io.ktor.features.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -13,12 +15,13 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import nl.jcraane.mocker.features.DetailLoggingFeature
-import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
 import nl.jcraane.mocker.features.TokenReplaceFeature
 import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
+import nl.jcraane.mocker.features.forwarding.KtFilePersister
+import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature
-import nl.jcraane.mocker.features.testing.ResponseTimeBehavior
 import nl.jcraane.mocker.features.testing.RequestConfig
+import nl.jcraane.mocker.features.testing.ResponseTimeBehavior
 import nl.jcraane.mocker.features.testing.StatusCodeBehavior
 import org.slf4j.event.Level
 import persons
@@ -68,13 +71,14 @@ private fun Application.userDefinedFeatures() {
     }
     install(RequestForwardingAndRecordingFeature) {
         forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(true, "http://localhost:8081")
-        /*recordingConfig = RequestForwardingAndRecordingFeature.Configuration.RecorderConfig(
+        recordingConfig = RequestForwardingAndRecordingFeature.Configuration.RecorderConfig(
             true,
             KtFilePersister(
-                "<INSERT_PATH>/mocker/src/mocks/Recorded.kt",
-                "<INSERT_PATH>/mocker/resources/responses/recorded/"
-            )
-        )*/
+                "/Users/jamiecraane/develop/IntelliJ/mocker/src/main/kotlin/mocks/Recorded.kt",
+                "/Users/jamiecraane/develop/IntelliJ/mocker/src/main/resources/responses/recorded/"
+            ),
+            recordQueryParameters = true
+        )
     }
     install(ChaosMockerFeature) {
         slowResponseTimes.add(RequestConfig.get("/api/v1/**"), ResponseTimeBehavior.Fixed(constant = 250))
