@@ -105,10 +105,98 @@ install(DetailLoggingFeature) {
 
 ### Chaos Mocker
 
+You might want to test how an application behaves when not all backend services behave nicely, for example when services are performing slow or with inconsistent response times or when services throw errors. The ChaosMocker feature can be used to simulate slow responses and/or error responses. 
+
+With the ChaosMocker feature an incoming request path is mapped onto a behavior. At the moment there are two kind of behaviors:
+
+- ResponseTimeBehavior
+    Fixed, adds a fixed delay to every request which matches
+    Random, adds a random delay to every requests which matches
+- StatusCodeBehavior
+    Returns the configured status code for every path that matches
+    
+Matching is done on path and http method. This path can be configured like an Ant Style path [https://ant.apache.org/manual/dirtasks.html], for example
+
+- /api/v1/** Matches all paths which begins with /api/v1
+- /api/v1/persons Matches the exact path /api/v1/persons
+
+The http method is matched based on the configured method or all methods if RequestConfig.all is used. See the following example:
+
+```
+install(ChaosMockerFeature) {
+    slowResponseTimes.add(RequestConfig.get("/api/v1/**"), ResponseTimeBehavior.Fixed(constant = 250))
+    slowResponseTimes.add(RequestConfig.post("/api/v1/**"), ResponseTimeBehavior.Random(variable = 500L..1500L, constant = 1500L))
+    slowResponseTimes.add(RequestConfig.all("/api/v1/persons/actions"), ResponseTimeBehavior.Random(variable = 500L..1500L, constant = 1500L))
+    errorStatusCodes.add(RequestConfig.delete("/api/v1/tasks"), StatusCodeBehavior(HttpStatusCode.Forbidden))
+}
+```
+
 ### Request Forwarding
 
+Not all API's have to be mocked. Take for example the following endpoints for a given API:
 
+- api/v1/persons
+- api/v1/tasks
+
+Suppose api/v1/persons is in place and api/v1/tasks is to be developed but the url's, requests and responses are already known. In this situation the api/v1/tasks can be mocked while all other requests can be forwarded to the real API. The following example shows how this is configured by using the RequestForwardingAndRecordingFeature feature:
+
+```
+install(RequestForwardingAndRecordingFeature) {
+    forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(
+        enabled = true,
+        origin = "https://somerealapi:8081"
+    )
+}
+```
 
 ### Request Recording
 
-## Examples
+The requests and responses which are forwared to the origin can also be recorded and, after recorded, served by Mocker. This is handy when you want to record a specific scenario for testing (and to be able to alter the responses for different test scenario'). The following example show how to configure recording of requests and responses:
+
+```
+ install(RequestForwardingAndRecordingFeature) {
+    forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(
+        enabled = true,
+        origin = "https://somerealapi:8081"
+    )
+    recordingConfig = RequestForwardingAndRecordingFeature.Configuration.RecorderConfig(
+        enabled = true,
+        persister = KtFilePersister(
+            sourceFileWriter = FileWriterStrategy(
+                rootFolder = "<FOLDER>/mocker/src/main/kotlin/mocks",
+                defaultFileName = "Recorded.kt"
+            ),
+            resourceFileWriter = FileWriterStrategy(rootFolder = "<FOLDER>/mocker/src/main/resources/responses/recorded/")
+        ),
+        recordQueryParameters = true
+    )
+}
+```
+
+To record requests and responses, forwarding all unhandled requests to an origin must be enabled. A recorded request is unique based on its method and path, so GET /api/v1/persons is different from POST /api/v1/persons. By default query parameters do not make the recorded request unique so /api/v1/persons?name=John and /api/v1/persons?name=Cleese are treated as the same request and only one response is recorded. To make the query parameters unique for each recorded request (which also makes the response unique for the given parameters), set recordQueryParameters to true.
+
+The persister is responsible for writing the recorded data to file. The KtFilePersister writes the requests to a Kotlin file (the sourceFileWriter) and the individual responses to separate files in the folder specified by the resourceFileWriter.
+
+In the example above the source file with the endpoints (Recorded.Kt) and the resource files, are both written to the src/main/kotlin and src/main/resources respectively. 
+
+The method which encapsulates the recorded endpoints is called recorded. See the following example of a Recorded.kt file:
+
+```
+fun Route.recorded() {
+    get("/api/v1/persons") {
+        val queryParamNamePart = getQueryParamNamePart(getQueryParamsAsSet(call.parameters))
+        call.respondContents(
+            "/<SOME_PATH>/src/main/resources/responses/recorded/get_api_v1_persons${queryParamNamePart}.json",
+            ContentType.Application.Json
+        )
+    }
+}
+```
+
+To use this in Mocker register this method in Application.kt like so:
+
+```
+mock { 
+    recorded()
+}
+```
