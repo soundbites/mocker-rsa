@@ -7,7 +7,7 @@ This approach differs from traditional mocking applications since the mocks are 
 
 ## Basic usage
 
-CORS headers are installed bu default as is the serving of static content from the static folder under resources.
+CORS headers are installed by default as is the serving of static content from the static folder under resources.
 
 To create a simple endpoint, the Application.mock extension method can be used. This method sets up a routing with an optional basebath. The last argument to the mock extensions method is a Route.() so a lambda can be used to configure the mocks. See the following example:
 
