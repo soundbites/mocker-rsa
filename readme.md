@@ -21,7 +21,7 @@ mock(basePath = "api/v1") {
 
 which configure the api/v1/persons endpoint to return plain/text someText.
 
-Responses can also be loaded from the claspath. The following example returns the responses/persons.json file (which is in src/main/resources/responses/persons.json) using the respondContents extensions method. Please note the default context-type of respondContents is application/json.
+Responses can also be loaded from the classpath. The following example returns the responses/persons.json file (which is in src/main/resources/responses/persons.json) using the respondContents extensions method. Please note the default context-type of respondContents is application/json.
 
 ```
     get("persons") {
@@ -151,7 +151,7 @@ install(RequestForwardingAndRecordingFeature) {
 
 ### Request Recording
 
-The requests and responses which are forwared to the origin can also be recorded and, after recorded, served by Mocker. This is handy when you want to record a specific scenario for testing (and to be able to alter the responses for different test scenario'). The following example show how to configure recording of requests and responses:
+The requests and responses which are forwared to the origin can also be recorded and, after recorded, served by Mocker. This is handy when you want to record a specific scenario for testing (and to be able to alter the responses for different test scenarios). The following example show how to configure recording of requests and responses:
 
 ```
  install(RequestForwardingAndRecordingFeature) {
@@ -200,3 +200,5 @@ mock {
     recorded()
 }
 ```
+
+After the mocks are recorded, they can be moved/renamed and checked-in to version control if desired. 
