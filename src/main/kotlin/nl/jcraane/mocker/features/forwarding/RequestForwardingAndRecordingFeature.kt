@@ -9,10 +9,10 @@ import io.ktor.client.call.call
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
-import io.ktor.client.response.readText
+import io.ktor.client.response.readBytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.TextContent
+import io.ktor.http.content.ByteArrayContent
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.request.httpMethod
@@ -27,7 +27,6 @@ import nl.jcraane.mocker.features.Method
 import nl.jcraane.mocker.getQueryParamsAsSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.nio.charset.Charset
 
 class RequestForwardingAndRecordingFeature(private val configuration: Configuration) {
     private val httpClient = HttpClient()
@@ -58,8 +57,7 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
             }
             val response = result.response
             if (response.status.isSuccess()) {
-                val responseBody = response.readText(Charset.forName("UTF-8"))
-
+                val body = response.readBytes()
                 val contentType = response.contentType() ?: ContentType.Any
                 if (configuration.recordingConfig?.enabled == true) {
                     Method.create(call.request.httpMethod).also {
@@ -68,19 +66,19 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
                                 call.request.path(),
                                 it,
                                 contentType,
-                                responseBody,
+                                if (body.isNotEmpty()) body else null,
                                 getQueryParamsAsSet(call.request.queryParameters)
                             )
                         )
                     }
                 }
 
-                context.proceedWith(TextContent(responseBody, contentType, response.status))
+                context.proceedWith(ByteArrayContent(body, contentType, response.status))
             } else {
                 logger.info("Request to $originUrl failed")
             }
         } catch (e: Exception) {
-            logger.info("Request to $originUrl failed")
+            logger.error("Request to $originUrl failed", e)
         }
     }
 

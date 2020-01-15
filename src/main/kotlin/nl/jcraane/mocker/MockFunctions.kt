@@ -7,7 +7,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.response.respond
 import io.ktor.response.respondBytes
-import io.ktor.response.respondText
 import io.ktor.routing.Route
 import io.ktor.routing.Routing
 import io.ktor.routing.route
@@ -24,17 +23,11 @@ suspend fun ApplicationCall.respondContents(
 ) {
     val resource = javaClass.getResource(classPathResource)
     if (resource != null) {
-        respondText(resource.readText(), contentType ?: determineContentTypeOnFileExtensions(classPathResource))
+        respondBytes(resource.readBytes(), contentType ?: determineContentTypeOnFileExtensions(classPathResource))
     } else {
-        log.error("Classpath resource $classPathResource cannot be found. Make sure it exists in src/main/resource${classPathResource.prependIfMissing("/")} and starts with a '/' (forward slash) character.")
+        log.error("Classpath resource [$classPathResource] cannot be found. Make sure it exists in src/main/resource${classPathResource.prependIfMissing("/")} and starts with a '/' (forward slash) character.")
         respond(HttpStatusCode.InternalServerError)
     }
-}
-
-suspend fun ApplicationCall.respondFile(classPathResource: String, contentType: ContentType? = null) {
-    val resource = javaClass.getResource(classPathResource)
-    val bytes = resource.readBytes()
-    respondBytes(bytes, contentType ?: determineContentTypeOnFileExtensions(classPathResource))
 }
 
 fun Application.mock(basePath: String = "", build: Route.() -> Unit): Routing {

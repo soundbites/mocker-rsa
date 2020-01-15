@@ -53,6 +53,10 @@ fun Application.module() {
         persons()
         tasks()
     }
+
+    mock {
+//        recorded()
+    }
 }
 
 private fun Application.userDefinedFeatures() {
@@ -117,4 +121,3 @@ private fun Application.defaultFeatures() {
         header("X-Engine", "Mocker (Ktor)") // will send this header with each response
     }
 }
-

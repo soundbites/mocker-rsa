@@ -4,12 +4,14 @@ import nl.jcraane.mocker.prependIfMissing
 import nl.jcraane.mocker.util.RealTimeProvider
 import nl.jcraane.mocker.util.TimeProvider
 import java.io.File
+import java.io.FileOutputStream
 import java.io.FileWriter
 import java.time.format.DateTimeFormatter
 
 interface WriterStrategy {
     val rootFolder: String
     fun write(contents: String, fileName: String? = null)
+    fun write(contents: ByteArray, fileName: String? = null)
 }
 
 /**
@@ -37,6 +39,15 @@ open class FileWriterStrategy(
             it.write(contents)
             it.flush()
             firstWrite = false
+        }
+    }
+
+    override fun write(contents: ByteArray, fileName: String?) {
+        File(rootFolder).mkdirs()
+        uniqueFilename = getUniqueFullPath(fileName)
+        FileOutputStream(uniqueFilename).use {
+            it.write(contents)
+            it.flush()
         }
     }
 

@@ -63,7 +63,7 @@ class KtFilePersister(
 
     private fun StringBuilder.writeResourceMethod(entry: RecordedEntry) {
         val resourceStartPath = "${entry.method.methodName}${entry.requestPath.replace("/", "_")}"
-        val resourceExtension = ".json"
+        val resourceExtension = ".${entry.contentType.contentSubtype}"
         val path = "${entry.method.methodName}${entry.requestPath}"
         if (!isWritten(path)) {
             append("${entry.method.methodName}(\"${entry.requestPath}\") {\n")
@@ -74,7 +74,7 @@ class KtFilePersister(
     }
 
     private fun StringBuilder.endMethod(entry: RecordedEntry, resourceStartPath: String, resourceExtension: String): java.lang.StringBuilder? {
-        if (entry.responseBody.isNotEmpty()) {
+        if (entry.responseBody?.isNotEmpty() == true) {
             val contentType = determineContentTypeOnFileExtensions(resourceExtension)
             append("val queryParamNamePart = getQueryParamNamePart(getQueryParamsAsSet(call.parameters))\n")
             val packageName = getResourcePackageName(resourceFileWriter.rootFolder)
@@ -88,7 +88,9 @@ class KtFilePersister(
     private fun writeResourceFile(entry: RecordedEntry, resourceStartPath: String, resourceExtension: String) {
         val queryParamNamePart = getQueryParamNamePart(entry.queryParameters)
         val resourceFileName = "$resourceStartPath$queryParamNamePart$resourceExtension"
-        resourceFileWriter.write(entry.responseBody, resourceFileName)
+        entry.responseBody?.let {
+            resourceFileWriter.write(it, resourceFileName)
+        }
     }
 
     private fun getResourcePackageName(rootFolder: String): String {
