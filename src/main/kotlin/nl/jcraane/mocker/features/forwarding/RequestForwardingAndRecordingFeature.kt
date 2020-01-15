@@ -62,7 +62,7 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
 
                 val contentType = response.contentType() ?: ContentType.Any
                 if (configuration.recordingConfig?.enabled == true) {
-                    Method.create(call.request.httpMethod)?.also {
+                    Method.create(call.request.httpMethod).also {
                         recorder.record(
                             RecordedEntry(
                                 call.request.path(),
