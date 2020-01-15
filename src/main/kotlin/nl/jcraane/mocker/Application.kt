@@ -95,6 +95,11 @@ private fun Application.userDefinedFeatures() {
 //        slowResponseTimes.add(RequestConfig.get("/api/v1/**"), ResponseTimeBehavior.Fixed(constant = 250))
 //        slowResponseTimes.add(RequestConfig.post("/api/v1/**"), ResponseTimeBehavior.Random(variable = 500L..1500L, constant = 1500L))
         errorStatusCodes.add(RequestConfig.delete("/api/v1/tasks"), StatusCodeBehavior.Fixed(HttpStatusCode.Forbidden))
+        errorStatusCodes.add(RequestConfig.post("/api/v1/tasks"), StatusCodeBehavior.Random(listOf(
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.NotImplemented
+        )))
     }
 }
 

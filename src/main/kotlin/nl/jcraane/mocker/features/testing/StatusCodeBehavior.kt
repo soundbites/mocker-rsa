@@ -10,4 +10,8 @@ sealed class StatusCodeBehavior {
     class Fixed(val fixedStatusCode: HttpStatusCode) : StatusCodeBehavior() {
         override fun getStatusCode() = fixedStatusCode
     }
+
+    class Random(val statusCodes: List<HttpStatusCode>) : StatusCodeBehavior() {
+        override fun getStatusCode() = statusCodes[kotlin.random.Random.nextInt(statusCodes.size)]
+    }
 }
