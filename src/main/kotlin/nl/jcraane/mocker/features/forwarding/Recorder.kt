@@ -6,7 +6,6 @@ import nl.jcraane.mocker.features.Method
 class Recorder(private val persister: Persister) {
     val data: MutableSet<RecordedEntry> = mutableSetOf()
 
-//    todo perhaps write file immediately to persister so we don't habe large chunks of data in-memory. Especially large binary files.
     fun record(entry: RecordedEntry) {
         data += entry
         persist()
