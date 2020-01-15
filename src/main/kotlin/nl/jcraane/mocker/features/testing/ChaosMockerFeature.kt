@@ -28,9 +28,9 @@ class ChaosMockerFeature(private val configuration: Configuration) {
             val subject = context.subject
             if (subject is TextContent) {
                 logger.info("${call.request.httpMethod} ${call.request.path()} fail with $it")
-                context.proceedWith(TextContent(subject.text, subject.contentType, it.statusCode))
+                context.proceedWith(TextContent(subject.text, subject.contentType, it.getStatusCode()))
             } else if (subject is HttpStatusCodeContent) {
-                context.proceedWith(HttpStatusCodeContent(it.statusCode))
+                context.proceedWith(HttpStatusCodeContent(it.getStatusCode()))
             }
         }
     }
