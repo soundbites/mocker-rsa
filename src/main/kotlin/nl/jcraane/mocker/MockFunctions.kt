@@ -3,7 +3,9 @@ package nl.jcraane.mocker
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
+import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.response.respondText
 import io.ktor.routing.Route
@@ -12,15 +14,21 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.util.toMap
 import nl.jcraane.mocker.features.forwarding.QueryParam
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("MockFunctions")
 
 suspend fun ApplicationCall.respondContents(
     classPathResource: String,
     contentType: ContentType? = null
 ) {
-    respondText(
-        javaClass.getResource(classPathResource).readText(),
-        contentType ?: determineContentTypeOnFileExtensions(classPathResource)
-    )
+    val resource = javaClass.getResource(classPathResource)
+    if (resource != null) {
+        respondText(resource.readText(), contentType ?: determineContentTypeOnFileExtensions(classPathResource))
+    } else {
+        log.error("Classpath resource $classPathResource cannot be found. Make sure it exists in src/main/resource${classPathResource.prependIfMissing("/")} and starts with a '/' (forward slash) character.")
+        respond(HttpStatusCode.InternalServerError)
+    }
 }
 
 suspend fun ApplicationCall.respondFile(classPathResource: String, contentType: ContentType? = null) {
