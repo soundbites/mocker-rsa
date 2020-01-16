@@ -5,6 +5,8 @@ import io.ktor.application.ApplicationCall
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readText
 import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
@@ -12,6 +14,9 @@ import io.ktor.routing.Routing
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.util.toMap
+import io.ktor.websocket.DefaultWebSocketServerSession
+import io.ktor.websocket.webSocket
+import kotlinx.coroutines.delay
 import nl.jcraane.mocker.features.forwarding.QueryParam
 import org.slf4j.LoggerFactory
 import java.nio.charset.Charset
@@ -23,9 +28,10 @@ val UTF_8: Charset = Charset.forName("UTF-8")
 suspend fun ApplicationCall.respondContents(classPathResource: String, contentType: ContentType? = null) {
     val resource = javaClass.getResource(classPathResource)
     if (resource != null) {
-        respondBytes(resource.readBytes(), contentType ?: determineContentTypeOnFileExtensions(
-            classPathResource
-        )
+        respondBytes(
+            resource.readBytes(), contentType ?: determineContentTypeOnFileExtensions(
+                classPathResource
+            )
         )
     } else {
         log.error(
@@ -41,6 +47,32 @@ fun Application.mock(basePath: String = "", build: Route.() -> Unit): Routing {
     return routing {
         route(basePath) {
             apply(build)
+        }
+    }
+}
+
+suspend fun DefaultWebSocketServerSession.sendContinuousResponse(response: String, delayMillis: Long = 5000L) {
+    while (true) {
+        outgoing.send(Frame.Text(response))
+        delay(delayMillis)
+    }
+}
+
+suspend fun DefaultWebSocketServerSession.echoRequest() {
+    for (frame in incoming) {
+        when (frame) {
+            is Frame.Text -> {
+                val text = frame.readText()
+                outgoing.send(Frame.Text("CLIENT SAID: $text"))
+            }
+        }
+    }
+}
+
+fun Application.mockWebSocket(path: String = "", handler: suspend DefaultWebSocketServerSession.() -> Unit): Routing {
+    return routing {
+        webSocket(path) {
+            handler()
         }
     }
 }

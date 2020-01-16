@@ -16,7 +16,11 @@ import io.ktor.request.path
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.websocket.WebSockets
+import nl.jcraane.mocker.extensions.echoRequest
 import nl.jcraane.mocker.extensions.mock
+import nl.jcraane.mocker.extensions.mockWebSocket
+import nl.jcraane.mocker.extensions.sendContinuousResponse
 import nl.jcraane.mocker.features.forwarding.FileWriterStrategy
 import nl.jcraane.mocker.features.forwarding.KtFilePersister
 import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
@@ -61,8 +65,15 @@ fun Application.module() {
         tasks()
     }
 
+    mockWebSocket("api/v2/websocket") {
+        sendContinuousResponse("Hello from websocket", 1000L)
+    }
+    mockWebSocket("api/v2/echo") {
+        echoRequest()
+    }
+
     mock {
-//        recorded()
+        //        recorded()
     }
 }
 
@@ -97,14 +108,18 @@ private fun Application.userDefinedFeatures() {
     }
 
     install(ChaosMockerFeature) {
-//        slowResponseTimes.add(RequestConfig.get("/api/v1/**"), ResponseTimeBehavior.Fixed(constant = 250))
+        //        slowResponseTimes.add(RequestConfig.get("/api/v1/**"), ResponseTimeBehavior.Fixed(constant = 250))
 //        slowResponseTimes.add(RequestConfig.post("/api/v1/**"), ResponseTimeBehavior.Random(variable = 500L..1500L, constant = 1500L))
         errorStatusCodes.add(RequestConfig.delete("/api/v1/tasks"), StatusCodeBehavior.Fixed(HttpStatusCode.Forbidden))
-        errorStatusCodes.add(RequestConfig.post("/api/v1/tasks"), StatusCodeBehavior.Random(listOf(
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.NotImplemented
-        )))
+        errorStatusCodes.add(
+            RequestConfig.post("/api/v1/tasks"), StatusCodeBehavior.Random(
+                listOf(
+                    HttpStatusCode.Forbidden,
+                    HttpStatusCode.Unauthorized,
+                    HttpStatusCode.NotImplemented
+                )
+            )
+        )
     }
 }
 
@@ -142,4 +157,5 @@ private fun Application.defaultFeatures() {
     install(DefaultHeaders) {
         header("X-Engine", "Mocker (Ktor)") // will send this header with each response
     }
+    install(WebSockets)
 }
