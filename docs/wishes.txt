@@ -6,3 +6,4 @@ Wishes (not prioritized)
 - web socket support
 - SSE support
 - control API (for example inceasing response times after some time, for performance testing).
+- use query parameters to replace variables in response body
