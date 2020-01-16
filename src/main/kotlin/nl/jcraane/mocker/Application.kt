@@ -1,5 +1,6 @@
 package nl.jcraane.mocker
 
+import com.codahale.metrics.jmx.JmxReporter
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -9,24 +10,26 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
+import io.ktor.metrics.dropwizard.DropwizardMetrics
 import io.ktor.request.httpMethod
 import io.ktor.request.path
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import nl.jcraane.mocker.extensions.mock
-import nl.jcraane.mocker.features.logging.DetailLoggingFeature
-import nl.jcraane.mocker.features.variablereplacement.VariableReplaceFeature
-import nl.jcraane.mocker.features.variablereplacement.UserAgentHostIpReplacementStrategy
 import nl.jcraane.mocker.features.forwarding.FileWriterStrategy
 import nl.jcraane.mocker.features.forwarding.KtFilePersister
 import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
+import nl.jcraane.mocker.features.logging.DetailLoggingFeature
 import nl.jcraane.mocker.features.testing.ChaosMockerFeature
 import nl.jcraane.mocker.features.testing.RequestConfig
 import nl.jcraane.mocker.features.testing.StatusCodeBehavior
+import nl.jcraane.mocker.features.variablereplacement.UserAgentHostIpReplacementStrategy
+import nl.jcraane.mocker.features.variablereplacement.VariableReplaceFeature
 import org.slf4j.event.Level
 import persons
 import tasks
+import java.util.concurrent.TimeUnit
 
 fun main() {
     embeddedServer(
@@ -43,6 +46,7 @@ fun main() {
 fun Application.module() {
     defaultFeatures()
     userDefinedFeatures()
+    metrics()
 
     // Static routing defined here
     routing {
@@ -101,6 +105,16 @@ private fun Application.userDefinedFeatures() {
             HttpStatusCode.Unauthorized,
             HttpStatusCode.NotImplemented
         )))
+    }
+}
+
+private fun Application.metrics() {
+    install(DropwizardMetrics) {
+        JmxReporter.forRegistry(registry)
+            .convertRatesTo(TimeUnit.SECONDS)
+            .convertDurationsTo(TimeUnit.MILLISECONDS)
+            .build()
+            .start()
     }
 }
 

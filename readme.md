@@ -57,6 +57,14 @@ To run Mocker with auto-reload do the following:
 
 To stop the application and/or auto-compile issue ctrl-c in both terminal windows.
 
+## Metrics
+
+Although metrcis might not sound that useful for a mocking tool, it can be really helpful to know what specific requests and how many requests an application makes. This can be visualized with the metrics plugin.
+
+Metrics of the called services are available using the DropWizard feature which is installed by default. BNY default the JMXReporter is configured buu any DropWizard reporter can be used. The metrics feature is defined in the metrics function in Application.kt. To monitor Mocker with jvisualvm start jvisualvm from the command line. Also make sure the MBeans plugin is installed in jvisualvm. This can be done via: Tools -> Plugins -> Available Plugins and install the VisualVM-MBeans plugin.
+
+See [https://ktor.io/servers/features/metrics.html] for more information about the metrics feature and [https://metrics.dropwizard.io/4.0.0/getting-started.html] for more information about DropWizard and the different reporters.
+
 ## Advanced usage
 
 ### replace variables in responses
