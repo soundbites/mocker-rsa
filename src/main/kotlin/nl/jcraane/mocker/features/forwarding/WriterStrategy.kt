@@ -1,17 +1,35 @@
 package nl.jcraane.mocker.features.forwarding
 
+import nl.jcraane.mocker.extensions.UTF_8
 import nl.jcraane.mocker.extensions.prependIfMissing
 import nl.jcraane.mocker.util.RealTimeProvider
 import nl.jcraane.mocker.util.TimeProvider
 import java.io.File
 import java.io.FileOutputStream
 import java.io.FileWriter
+import java.io.StringWriter
 import java.time.format.DateTimeFormatter
 
 interface WriterStrategy {
     val rootFolder: String
     fun write(contents: String, fileName: String? = null)
     fun write(contents: ByteArray, fileName: String? = null)
+}
+
+class StringWriterStrategy: WriterStrategy {
+    override val rootFolder: String = ""
+
+    var writer = StringWriter()
+
+    override fun write(contents: String, fileName: String?) {
+        writer = StringWriter()
+        writer.write(contents)
+    }
+
+    override fun write(contents: ByteArray, fileName: String?) {
+        writer = StringWriter()
+        writer.write(String(contents, UTF_8))
+    }
 }
 
 /**

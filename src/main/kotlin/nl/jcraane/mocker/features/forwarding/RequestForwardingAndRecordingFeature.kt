@@ -23,8 +23,8 @@ import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.filter
 import io.ktor.util.pipeline.PipelineContext
-import nl.jcraane.mocker.features.Method
 import nl.jcraane.mocker.extensions.getQueryParamsAsSet
+import nl.jcraane.mocker.features.Method
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -102,7 +102,7 @@ class RequestForwardingAndRecordingFeature(private val configuration: Configurat
         }
     }
 
-    class Configuration() {
+    class Configuration {
         var forwardingConfig: ForwardingConfig? = null
         var recordingConfig: RecorderConfig? = null
 
