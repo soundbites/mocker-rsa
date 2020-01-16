@@ -1,6 +1,9 @@
+Wishes (not prioritized)
+
 - tls support mutual auth
 - web hook async response (so responding on url in request object)
 - random number generator (use Random for this)
 - web socket support
 - SSE support
-- control API
+- control API (for example inceasing response times after some time, for performance testing).
+- provide metrics. How many calls in timeframe etc. Integrate existing solution for this.
