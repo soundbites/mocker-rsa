@@ -29,6 +29,22 @@ Responses can also be loaded from the classpath. The following example returns t
     }
 ```
 
+### Websockets
+
+Mocker has support for mocking websocket connections. By default the following extensions functions van be used to create a web socket which sends a continuous stream of events or one which echos the incoming request. Those are defined as follows:
+
+```
+mockWebSocket("api/v2/websocket") {
+    sendContinuousResponse("Hello from websocket", 1000L)
+}
+
+mockWebSocket("api/v2/echo") {
+    echoRequest()
+}
+```
+
+Because this feature uses the Ktor WebSockets feature, the full power of this feature is available.
+
 ### Delay for simulating slow responses
 
 Sometimes you want to simulate slow loading of resources to test loaders in an application. This can easily be done using the delay function as in the following example:
