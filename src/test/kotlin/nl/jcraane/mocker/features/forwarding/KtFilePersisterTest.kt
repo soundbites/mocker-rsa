@@ -11,6 +11,8 @@ class KtFilePersisterTest {
         val sourceFileWriter = StringWriterStrategy()
         val recorder = Recorder(KtFilePersister(sourceFileWriter, StringWriterStrategy()))
         recorder.record(RecordedEntry("api/v1/persons", Method.GET, ContentType.Application.Json))
+        recorder.record(RecordedEntry("api/v1/persons", Method.GET, ContentType.Application.Json))
+        recorder.record(RecordedEntry("api/v1/persons", Method.GET, ContentType.Application.Json))
         recorder.record(RecordedEntry("api/v1/tasks", Method.GET, ContentType.Application.Json))
         recorder.record(RecordedEntry("api/v1/persons", Method.POST, ContentType.Application.Json))
 
