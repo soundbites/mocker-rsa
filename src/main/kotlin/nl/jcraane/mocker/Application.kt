@@ -15,8 +15,8 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import nl.jcraane.mocker.features.DetailLoggingFeature
-import nl.jcraane.mocker.features.TokenReplaceFeature
-import nl.jcraane.mocker.features.UserAgentHostIpReplacementStrategy
+import nl.jcraane.mocker.features.variablereplacement.VariableReplaceFeature
+import nl.jcraane.mocker.features.variablereplacement.UserAgentHostIpReplacementStrategy
 import nl.jcraane.mocker.features.forwarding.FileWriterStrategy
 import nl.jcraane.mocker.features.forwarding.KtFilePersister
 import nl.jcraane.mocker.features.forwarding.RequestForwardingAndRecordingFeature
@@ -62,7 +62,7 @@ fun Application.module() {
 }
 
 private fun Application.userDefinedFeatures() {
-    install(TokenReplaceFeature) {
+    install(VariableReplaceFeature) {
         hostIpReplacementStrategy = UserAgentHostIpReplacementStrategy(
             mapOf(
                 "Android" to "10.0.2.2",

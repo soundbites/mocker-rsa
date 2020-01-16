@@ -1,4 +1,4 @@
-package nl.jcraane.mocker.features
+package nl.jcraane.mocker.features.variablereplacement
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
@@ -9,7 +9,7 @@ import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 
-class TokenReplaceFeature(private val configuration: Configuration) {
+class VariableReplaceFeature(private val configuration: Configuration) {
     suspend fun intercept(context: PipelineContext<Any, ApplicationCall>) {
         val call = context.call
         val message = context.subject
@@ -23,6 +23,11 @@ class TokenReplaceFeature(private val configuration: Configuration) {
                 context.proceedWith(TextContent(replaced, message.contentType, call.response.status()))
             }
         }
+        // todo add support for bytearraycontent
+        /*else if (message is ByteArrayContent) {
+            val bytes = message.bytes()
+            message.contentType?.isTextContentType()
+        }*/
     }
 
     private fun getKey(key: String): String {
@@ -38,21 +43,22 @@ class TokenReplaceFeature(private val configuration: Configuration) {
 
     class Configuration {
         var tokens: Map<String, String> = emptyMap()
-        var hostIpReplacementStrategy: HostIpReplaceStrategy = StaticHostIpReplacementStrategy("localhost")
+        var hostIpReplacementStrategy: HostIpReplaceStrategy =
+            StaticHostIpReplacementStrategy("localhost")
     }
 
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, TokenReplaceFeature> {
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, VariableReplaceFeature> {
         const val TOKEN_START = "{"
         const val TOKEN_END = "}"
         const val HOST_IP = "${TOKEN_START}HOST_IP$TOKEN_END"
 
-        override val key = AttributeKey<TokenReplaceFeature>("TokenReplace")
+        override val key = AttributeKey<VariableReplaceFeature>("TokenReplace")
 
         override fun install(
             pipeline: ApplicationCallPipeline,
             configure: Configuration.() -> Unit
-        ): TokenReplaceFeature {
-            val tokenReplace = TokenReplaceFeature(
+        ): VariableReplaceFeature {
+            val tokenReplace = VariableReplaceFeature(
                 Configuration().apply(configure)
             )
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {

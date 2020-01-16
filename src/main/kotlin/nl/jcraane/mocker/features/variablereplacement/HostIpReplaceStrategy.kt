@@ -1,4 +1,4 @@
-package nl.jcraane.mocker.features
+package nl.jcraane.mocker.features.variablereplacement
 
 import io.ktor.application.ApplicationCall
 import io.ktor.request.userAgent
@@ -7,11 +7,13 @@ interface HostIpReplaceStrategy {
     fun getHostIp(call: ApplicationCall? = null): String
 }
 
-class StaticHostIpReplacementStrategy(private val staticValue: String = "localhost") : HostIpReplaceStrategy {
+class StaticHostIpReplacementStrategy(private val staticValue: String = "localhost") :
+    HostIpReplaceStrategy {
     override fun getHostIp(call: ApplicationCall?) = staticValue
 }
 
-class UserAgentHostIpReplacementStrategy(private val mapping: Map<String, String>) : HostIpReplaceStrategy {
+class UserAgentHostIpReplacementStrategy(private val mapping: Map<String, String>) :
+    HostIpReplaceStrategy {
     override fun getHostIp(call: ApplicationCall?) : String {
         val value = mapping
             .filter { entry -> call?.request?.userAgent()?.contains(entry.key, ignoreCase = true) == true }

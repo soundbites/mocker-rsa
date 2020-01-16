@@ -25,7 +25,11 @@ suspend fun ApplicationCall.respondContents(
     if (resource != null) {
         respondBytes(resource.readBytes(), contentType ?: determineContentTypeOnFileExtensions(classPathResource))
     } else {
-        log.error("Classpath resource [$classPathResource] cannot be found. Make sure it exists in src/main/resource${classPathResource.prependIfMissing("/")} and starts with a '/' (forward slash) character.")
+        log.error(
+            "Classpath resource [$classPathResource] cannot be found. Make sure it exists in src/main/resource${classPathResource.prependIfMissing(
+                "/"
+            )} and starts with a '/' (forward slash) character."
+        )
         respond(HttpStatusCode.InternalServerError)
     }
 }
@@ -80,3 +84,7 @@ fun getQueryParamNamePart(queryParameters: Set<QueryParam>): String {
 fun getQueryParamsAsSet(parameters: Parameters) = parameters.toMap()
     .map { entry -> QueryParam(entry.key, entry.value.first()) }
     .toSet()
+
+fun ContentType.isTextContentType(): Boolean {
+    return false
+}

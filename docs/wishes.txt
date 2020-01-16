@@ -1,0 +1,6 @@
+- tls support mutual auth
+- web hook async response (so responding on url in request object)
+- random number generator (use Random for this)
+- web socket support
+- SSE support
+- control API

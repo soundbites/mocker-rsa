@@ -1,7 +1,9 @@
 package nl.jcraane.mocker
 
+import io.ktor.http.ContentType
 import nl.jcraane.mocker.features.forwarding.QueryParam
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MockFunctionsTest {
@@ -20,5 +22,11 @@ class MockFunctionsTest {
         assertEquals("/test", "/test".prependIfMissing("/"))
         assertEquals("/test", "/test".prependIfMissing(""))
         assertEquals("test", "test".prependIfMissing(""))
+    }
+
+    @Test
+    fun isTextContentType() {
+        assertTrue(ContentType.Application.Json.isTextContentType())
+//        todo add more tests
     }
 }
