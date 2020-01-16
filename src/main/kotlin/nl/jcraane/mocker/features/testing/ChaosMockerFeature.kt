@@ -5,6 +5,7 @@ import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.http.HttpMethod
+import io.ktor.http.content.ByteArrayContent
 import io.ktor.http.content.HttpStatusCodeContent
 import io.ktor.http.content.TextContent
 import io.ktor.request.httpMethod
@@ -12,8 +13,8 @@ import io.ktor.request.path
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
-import nl.jcraane.mocker.features.Method
 import nl.jcraane.mocker.extensions.prependIfMissing
+import nl.jcraane.mocker.features.Method
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.util.AntPathMatcher
@@ -31,6 +32,8 @@ class ChaosMockerFeature(private val configuration: Configuration) {
                 context.proceedWith(TextContent(subject.text, subject.contentType, it.getStatusCode()))
             } else if (subject is HttpStatusCodeContent) {
                 context.proceedWith(HttpStatusCodeContent(it.getStatusCode()))
+            } else if (subject is ByteArrayContent) {
+                context.proceedWith(ByteArrayContent(subject.bytes(), subject.contentType, it.getStatusCode()))
             }
         }
     }
