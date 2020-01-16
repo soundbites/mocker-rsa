@@ -1,4 +1,4 @@
-package nl.jcraane.mocker
+package nl.jcraane.mocker.extensions
 
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
@@ -14,16 +14,19 @@ import io.ktor.routing.routing
 import io.ktor.util.toMap
 import nl.jcraane.mocker.features.forwarding.QueryParam
 import org.slf4j.LoggerFactory
+import java.nio.charset.Charset
 
 private val log = LoggerFactory.getLogger("MockFunctions")
 
-suspend fun ApplicationCall.respondContents(
-    classPathResource: String,
-    contentType: ContentType? = null
-) {
+val UTF_8: Charset = Charset.forName("UTF-8")
+
+suspend fun ApplicationCall.respondContents(classPathResource: String, contentType: ContentType? = null) {
     val resource = javaClass.getResource(classPathResource)
     if (resource != null) {
-        respondBytes(resource.readBytes(), contentType ?: determineContentTypeOnFileExtensions(classPathResource))
+        respondBytes(resource.readBytes(), contentType ?: determineContentTypeOnFileExtensions(
+            classPathResource
+        )
+        )
     } else {
         log.error(
             "Classpath resource [$classPathResource] cannot be found. Make sure it exists in src/main/resource${classPathResource.prependIfMissing(
@@ -84,7 +87,3 @@ fun getQueryParamNamePart(queryParameters: Set<QueryParam>): String {
 fun getQueryParamsAsSet(parameters: Parameters) = parameters.toMap()
     .map { entry -> QueryParam(entry.key, entry.value.first()) }
     .toSet()
-
-fun ContentType.isTextContentType(): Boolean {
-    return false
-}

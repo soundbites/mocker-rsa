@@ -1,6 +1,6 @@
 package nl.jcraane.mocker.features.forwarding
 
-import nl.jcraane.mocker.prependIfMissing
+import nl.jcraane.mocker.extensions.prependIfMissing
 import nl.jcraane.mocker.util.RealTimeProvider
 import nl.jcraane.mocker.util.TimeProvider
 import java.io.File

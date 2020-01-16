@@ -1,6 +1,6 @@
 package nl.jcraane.mocker.features.forwarding
 
-import nl.jcraane.mocker.getQueryParamNamePart
+import nl.jcraane.mocker.extensions.getQueryParamNamePart
 import java.nio.file.Paths
 
 interface Persister {
@@ -40,9 +40,9 @@ class KtFilePersister(
         import io.ktor.response.respondText
         import io.ktor.routing.*
         import io.ktor.http.ContentType
-        import nl.jcraane.mocker.getQueryParamNamePart
-        import nl.jcraane.mocker.getQueryParamsAsSet
-        import nl.jcraane.mocker.respondContents
+        import nl.jcraane.mocker.extensions.getQueryParamNamePart
+        import nl.jcraane.mocker.extensions.getQueryParamsAsSet
+        import nl.jcraane.mocker.extensions.respondContents
         
         fun Route.recorded() {
         """.trimIndent()

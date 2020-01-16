@@ -1,4 +1,4 @@
-package nl.jcraane.mocker.features
+package nl.jcraane.mocker.features.logging
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
@@ -6,8 +6,6 @@ import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.http.Headers
 import io.ktor.http.content.TextContent
-import io.ktor.request.httpMethod
-import io.ktor.request.path
 import io.ktor.request.receiveText
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.response.ResponseHeaders
@@ -21,13 +19,19 @@ class DetailLoggingFeature(private val configuration: Configuration) {
         val call = context.call
 
         if (configuration.logDetails.contains(Configuration.LogDetail.REQUEST_HEADERS)) {
-            log("REQUEST HEADERS", logger) {
+            log(
+                "REQUEST HEADERS",
+                logger
+            ) {
                 logHeaders(call.request.headers)
             }
         }
 
         if (configuration.logDetails.contains(Configuration.LogDetail.RESPONSE_HEADERS)) {
-            log("RESPONSE HEADERS", logger) {
+            log(
+                "RESPONSE HEADERS",
+                logger
+            ) {
                 logResponseHeaders(call.response.headers)
             }
         }
@@ -35,7 +39,10 @@ class DetailLoggingFeature(private val configuration: Configuration) {
         if (configuration.logDetails.contains(Configuration.LogDetail.REQUEST_BODY)) {
             val body = call.receiveText()
             if (body.isNotEmpty()) {
-                log("REQUEST BODY", logger) {
+                log(
+                    "REQUEST BODY",
+                    logger
+                ) {
                     logger.info(body)
                 }
             }
@@ -44,7 +51,10 @@ class DetailLoggingFeature(private val configuration: Configuration) {
         if (configuration.logDetails.contains(Configuration.LogDetail.RESPONSE_BODY)) {
             val message = context.subject
             if (message is TextContent) {
-                log("RESPONSE BODY", logger) {
+                log(
+                    "RESPONSE BODY",
+                    logger
+                ) {
                     logger.info(message.text)
                 }
             }

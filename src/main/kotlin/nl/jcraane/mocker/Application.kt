@@ -14,7 +14,8 @@ import io.ktor.request.path
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import nl.jcraane.mocker.features.DetailLoggingFeature
+import nl.jcraane.mocker.extensions.mock
+import nl.jcraane.mocker.features.logging.DetailLoggingFeature
 import nl.jcraane.mocker.features.variablereplacement.VariableReplaceFeature
 import nl.jcraane.mocker.features.variablereplacement.UserAgentHostIpReplacementStrategy
 import nl.jcraane.mocker.features.forwarding.FileWriterStrategy

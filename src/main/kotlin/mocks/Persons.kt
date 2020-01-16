@@ -3,7 +3,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.*
-import nl.jcraane.mocker.respondContents
+import nl.jcraane.mocker.extensions.respondContents
 
 fun Route.persons() {
     get("persons") {

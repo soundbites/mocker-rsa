@@ -4,30 +4,40 @@ import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
+import io.ktor.http.content.ByteArrayContent
 import io.ktor.http.content.TextContent
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
+import nl.jcraane.mocker.extensions.UTF_8
+import nl.jcraane.mocker.extensions.isSupportedTextContentType
 
 class VariableReplaceFeature(private val configuration: Configuration) {
     suspend fun intercept(context: PipelineContext<Any, ApplicationCall>) {
         val call = context.call
         val message = context.subject
         if (message is TextContent) {
-            var replaced = message.text
-            replaced = replaced.replace(HOST_IP, configuration.hostIpReplacementStrategy.getHostIp(call))
-            configuration.tokens.forEach { (key, value) ->
-                replaced = replaced.replace(getKey(key), value)
+            val original = message.text
+            val replaced = replaceVariables(original, call)
+            if (replaced != original) {
+                context.proceedWith(ByteArrayContent(replaced.toByteArray(UTF_8), message.contentType, call.response.status()))
             }
-            if (replaced != message.text) {
-                context.proceedWith(TextContent(replaced, message.contentType, call.response.status()))
+        } else if (message is ByteArrayContent && message.contentType?.isSupportedTextContentType() == true) {
+            val original = String(message.bytes(), UTF_8)
+            val replaced = replaceVariables(original, call)
+            if (replaced != original) {
+                context.proceedWith(ByteArrayContent(replaced.toByteArray(UTF_8), message.contentType, call.response.status()))
             }
         }
-        // todo add support for bytearraycontent
-        /*else if (message is ByteArrayContent) {
-            val bytes = message.bytes()
-            message.contentType?.isTextContentType()
-        }*/
+    }
+
+    private fun replaceVariables(replaced: String, call: ApplicationCall): String {
+        var replaced1 = replaced
+        replaced1 = replaced1.replace(HOST_IP, configuration.hostIpReplacementStrategy.getHostIp(call))
+        configuration.tokens.forEach { (key, value) ->
+            replaced1 = replaced1.replace(getKey(key), value)
+        }
+        return replaced1
     }
 
     private fun getKey(key: String): String {
