@@ -10,6 +10,7 @@ import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import nl.jcraane.mocker.extensions.UTF_8
+import nl.jcraane.mocker.extensions.getQueryParamsAsMap
 import nl.jcraane.mocker.extensions.isSupportedTextContentType
 
 class VariableReplaceFeature(private val configuration: Configuration) {
@@ -18,26 +19,32 @@ class VariableReplaceFeature(private val configuration: Configuration) {
         val message = context.subject
         if (message is TextContent) {
             val original = message.text
-            val replaced = replaceVariables(original, call)
+            var replaced = replaceVariables(original, call, configuration.tokens)
+            if (configuration.useQueryParamsForReplacement) {
+                replaced = replaceVariables(replaced, call, getQueryParamsAsMap(call.request.queryParameters))
+            }
             if (replaced != original) {
                 context.proceedWith(ByteArrayContent(replaced.toByteArray(UTF_8), message.contentType, call.response.status()))
             }
         } else if (message is ByteArrayContent && message.contentType?.isSupportedTextContentType() == true) {
             val original = String(message.bytes(), UTF_8)
-            val replaced = replaceVariables(original, call)
+            var replaced = replaceVariables(original, call, configuration.tokens)
+            if (configuration.useQueryParamsForReplacement) {
+                replaced = replaceVariables(replaced, call, getQueryParamsAsMap(call.request.queryParameters))
+            }
             if (replaced != original) {
                 context.proceedWith(ByteArrayContent(replaced.toByteArray(UTF_8), message.contentType, call.response.status()))
             }
         }
     }
 
-    private fun replaceVariables(replaced: String, call: ApplicationCall): String {
-        var replaced1 = replaced
-        replaced1 = replaced1.replace(HOST_IP, configuration.hostIpReplacementStrategy.getHostIp(call))
-        configuration.tokens.forEach { (key, value) ->
-            replaced1 = replaced1.replace(getKey(key), value)
+    private fun replaceVariables(replaced: String, call: ApplicationCall, variables: Map<String, String>): String {
+        var result = replaced
+        result = result.replace(HOST_IP, configuration.hostIpReplacementStrategy.getHostIp(call))
+        variables.forEach { (key, value) ->
+            result = result.replace(getKey(key), value)
         }
-        return replaced1
+        return result
     }
 
     private fun getKey(key: String): String {
@@ -53,8 +60,12 @@ class VariableReplaceFeature(private val configuration: Configuration) {
 
     class Configuration {
         var tokens: Map<String, String> = emptyMap()
-        var hostIpReplacementStrategy: HostIpReplaceStrategy =
-            StaticHostIpReplacementStrategy("localhost")
+        var hostIpReplacementStrategy: HostIpReplaceStrategy = StaticHostIpReplacementStrategy("localhost")
+        /**
+         * If true, uses the value of the query parameters who's name matches the variable in the response as replacement for the
+         * variable. Please be aware that any tokens which have the same as the query parameter have precedence.
+         */
+        var useQueryParamsForReplacement = false
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, VariableReplaceFeature> {

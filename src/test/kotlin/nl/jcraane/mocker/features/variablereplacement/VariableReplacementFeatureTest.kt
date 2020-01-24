@@ -26,6 +26,7 @@ private fun Application.mockModule() {
             "NAME" to "John",
             "{PLACE}" to "Amsterdam"
         )
+        useQueryParamsForReplacement = true
     }
 
     mock {
@@ -39,6 +40,11 @@ private fun Application.mockModule() {
 
         get("api/v1/mock/bytes") {
             call.respondContents("/mockResponse.txt", ContentType.Text.Plain)
+        }
+
+        get("api/v1/queryparamsbody") {
+            // NAME is replaced by the value of the name query parameter
+            call.respondText("result: {queryName}")
         }
     }
 }
@@ -87,7 +93,15 @@ class VariableReplacementFeatureTest {
                 assertEquals("name: John, place: Amsterdam", it.content)
             }
         }
+    }
 
-
+    @Test
+    fun testReplaceQueryParametersValuesInResponseBody() {
+        withTestApplication(Application::mockModule) {
+            handleRequest(HttpMethod.Get, "api/v1/queryparamsbody?queryName=Jan")
+                .response.let {
+                assertEquals("result: Jan", it.content)
+            }
+        }
     }
 }

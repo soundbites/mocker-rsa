@@ -119,3 +119,7 @@ fun getQueryParamNamePart(queryParameters: Set<QueryParam>): String {
 fun getQueryParamsAsSet(parameters: Parameters) = parameters.toMap()
     .map { entry -> QueryParam(entry.key, entry.value.first()) }
     .toSet()
+
+fun getQueryParamsAsMap(parameters: Parameters) = parameters.toMap()
+    .map { it.key to it.value.first() }
+    .toMap()
