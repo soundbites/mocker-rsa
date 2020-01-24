@@ -2,7 +2,6 @@ Wishes (not prioritized)
 
 - tls support mutual auth
 - web hook async response (so responding on url in request object)
-- random number generator (use Random for this)
 - SSE support
-- control API (for example inceasing response times after some time, for performance testing). or with a DSL for more static control.
+- control API (for example increasing response times after some time, for performance testing). or with a DSL for more static control.
 
