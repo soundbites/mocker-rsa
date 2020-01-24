@@ -5,4 +5,4 @@ Wishes (not prioritized)
 - random number generator (use Random for this)
 - SSE support
 - control API (for example inceasing response times after some time, for performance testing). or with a DSL for more static control.
-- use query parameters to replace variables in response body
+
