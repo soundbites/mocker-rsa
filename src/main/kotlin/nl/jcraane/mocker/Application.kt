@@ -4,6 +4,7 @@ import com.codahale.metrics.jmx.JmxReporter
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
+import io.ktor.client.features.json.*
 import io.ktor.features.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -33,6 +34,8 @@ import nl.jcraane.mocker.features.variablereplacement.VariableReplaceFeature
 import org.slf4j.event.Level
 import persons
 import tasks
+import mocks.RoadsideAssistance
+import mocks.PechMeldingen
 import java.util.concurrent.TimeUnit
 
 fun main() {
@@ -63,6 +66,11 @@ fun Application.module() {
     mock(basePath = "api/v1") {
         persons()
         tasks()
+    }
+
+    mock {
+        RoadsideAssistance()
+        PechMeldingen()
     }
 
     mockWebSocket("api/v2/websocket") {
