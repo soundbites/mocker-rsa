@@ -4,7 +4,6 @@ import com.codahale.metrics.jmx.JmxReporter
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.client.features.json.*
 import io.ktor.features.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod

@@ -6,11 +6,12 @@ import io.ktor.request.*
 import io.ktor.routing.*
 import kotlinx.serialization.json.Json
 import nl.jcraane.mocker.extensions.respondContents
+import state.IntakeStates
 
 fun Route.RoadsideAssistance() {
     post("v2/roadside-assistance") {
         val report = Json.parse(RequestBreakdownReport.serializer(), call.receiveText())
-        print("Relatie nummer = ${report.relation.relationNumber}")
+        meldingen.add(IntakeStates(report, IntakeStates.State.Intake))
         call.respondContents("/responses/roadside-assistance-success.json")
     }
 }
