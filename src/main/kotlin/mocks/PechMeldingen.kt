@@ -18,14 +18,24 @@ val meldingen = mutableListOf<IntakeStates>()
 fun Route.PechMeldingen() {
     get("disinfo/v1/pechMeldingen/relnr/{relnr}") {
 
-        val nextStatus = meldingen.firstOrNull() {
+        val state = meldingen.firstOrNull() {
             it.report.relation.relationNumber == call.parameters.get("relnr")
-        }?.nextStatus()
+        }
 
-        if (nextStatus == null) {
-            call.respondContents("/responses/roadside-assistance-status-not-found.json")
-        } else {
-            call.respondText(Json.stringify(Status.serializer()))
+        val next = state?.nextStatus()
+        val evolved = state?.evolve()
+
+        if (state != null) {
+            meldingen.remove(state)
+        }
+        if (evolved != null) {
+            meldingen.add(evolved)
+        }
+
+        if (next != null) {
+            call.respondText(Json.stringify(Status.serializer(), next), ContentType.Application.Json)
+        } else  {
+            call.respondContents("/responses/roadside-assistance-status-not-found.json", ContentType.Application.Json)
         }
     }
 }
