@@ -1,5 +1,6 @@
 package state
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import kotlinx.serialization.Serializable
 import mocks.RequestBreakdownReport
 
@@ -9,7 +10,7 @@ data class IntakeStates(val report: RequestBreakdownReport, var currentState: St
     fun nextStatus(): Status? {
         return when(currentState) {
             State.Intake -> null
-            State.Toewijzen -> Status.create(report)
+            State.Toewijzen -> Status.create(report, true)
             State.Onderweg -> {
                 val status = Status.create(report)
                 return status.copy(
@@ -31,7 +32,7 @@ data class IntakeStates(val report: RequestBreakdownReport, var currentState: St
                 )
             }
             State.Dichtbij -> {
-                val status = Status.create(report)
+                val status = Status.create(report, waitingTime = 960000)
                 return status.copy(
                     fase = "DICHTBIJ",
                     status = "A",
@@ -91,13 +92,13 @@ data class Status (
     var hulpverlener: Hulpverlener? = null
 ) {
     companion object {
-        fun create(report: RequestBreakdownReport): Status {
+        fun create(report: RequestBreakdownReport, isBusier: Boolean = false, waitingTime: Long = 1944000): Status {
             return Status(
                 gsonFile = "faseOpen.gson",
                 fase = "OPEN",
                 status = "-",
                 statusTijd = "2017-08-02T16:16:24+0000",
-                wachtTijd = 1944000,
+                wachtTijd = waitingTime,
                 incident = Incident(
                     sessie = "77A0955F6FDFFBEC",
                     volgNr = 53694,
@@ -110,10 +111,10 @@ data class Status (
                         lng = report.location.geoCoordinate.longitude,
                         desc = report.location.locationDescription
                     ),
-                    locatieBijz = report.location.locationDescription
+                    locatieBijz = report.incidentDescription ?: ""
                 ),
                 incFlags = IncFlags(
-                    drukkerDanVerwacht = false,
+                    drukkerDanVerwacht = isBusier,
                     planningGewijzigd = false
                 )
             )
