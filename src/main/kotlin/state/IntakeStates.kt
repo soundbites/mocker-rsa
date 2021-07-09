@@ -14,6 +14,8 @@ import kotlin.math.max
 
 data class IntakeStates(val report: RequestBreakdownReport, var currentState: State, val creationTime: LocalDateTime) {
 
+    val totalDuration = 12 * 60
+
     fun nextStatus(): Status? {
 
         val elapsed = ChronoUnit.SECONDS.between(creationTime, LocalDateTime.now())
@@ -32,7 +34,7 @@ data class IntakeStates(val report: RequestBreakdownReport, var currentState: St
                 )
             }
             State.Nadert -> {
-                val status = Status.create(report, creationTime = creationTime)
+                val status = Status.create(report, waitingTime = (totalDuration * 1000) - (elapsed * 1000), creationTime = creationTime)
                 return status.copy(
                     fase = "NADERT",
                     status = "A",
@@ -43,15 +45,18 @@ data class IntakeStates(val report: RequestBreakdownReport, var currentState: St
             }
             State.Dichtbij -> {
                 val status = Status.create(
-                    report, waitingTime = 960000 - (elapsed * 1000), creationTime = creationTime
+                    report, waitingTime = (totalDuration * 1000) - (elapsed * 1000), creationTime = creationTime
                 )
 
-                val offset = max((0.8 - (elapsed.toDouble() / 100.0)), 0.0)
+                val elapsedSinceStep = elapsed - ((totalDuration.toDouble() / 5) * 4)
+                val percentage = elapsedSinceStep / (totalDuration.toDouble() / 5)
+
+                val offset = 0.08 - (0.08 * percentage)
 
                 val hulpVerlenerLocatie = Locatie(
                     x = 148329,
                     y = 433946,
-                    lat = report.location.geoCoordinate.latitude,
+                    lat = (report.location.geoCoordinate.latitude + offset),
                     lng = (report.location.geoCoordinate.longitude - offset),
                     desc = report.location.locationDescription
                 )
@@ -97,12 +102,14 @@ data class IntakeStates(val report: RequestBreakdownReport, var currentState: St
 
         val elapsed = ChronoUnit.SECONDS.between(creationTime, LocalDateTime.now()).toInt()
 
+        val durationPart = totalDuration / 5
+
         return when (elapsed) {
-            in 0..20 -> IntakeStates(report, State.Toewijzen, creationTime)
-            in 21..40 -> IntakeStates(report, State.Onderweg, creationTime)
-            in 41..60 -> IntakeStates(report, State.Nadert, creationTime)
-            in 61..80 -> IntakeStates(report, State.Dichtbij, creationTime)
-            in 81..100 -> IntakeStates(report, State.Uitvoeren, creationTime)
+            in 0..durationPart -> IntakeStates(report, State.Toewijzen, creationTime)
+            in durationPart+1..durationPart*2 -> IntakeStates(report, State.Onderweg, creationTime)
+            in durationPart*2+1..durationPart*3 -> IntakeStates(report, State.Nadert, creationTime)
+            in durationPart*3+1..durationPart*4 -> IntakeStates(report, State.Dichtbij, creationTime)
+            in durationPart*4+1..durationPart*5 -> IntakeStates(report, State.Uitvoeren, creationTime)
             else -> null
         }
     }
