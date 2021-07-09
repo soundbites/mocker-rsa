@@ -18,6 +18,18 @@ group 'nl.capaxit'
 version '0.0.1'
 mainClassName = "nl.jcraane.mocker.ApplicationKt"
 
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Implementation-Version': version,
+                'Main-Class': 'nl.jcraane.mocker.ApplicationKt'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
 repositories {
     mavenLocal()
     jcenter()

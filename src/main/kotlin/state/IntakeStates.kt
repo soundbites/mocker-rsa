@@ -1,6 +1,5 @@
 package state
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import mocks.RequestBreakdownReport
