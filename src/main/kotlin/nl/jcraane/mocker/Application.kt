@@ -17,6 +17,7 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.websocket.WebSockets
+import mocks.Parking
 import nl.jcraane.mocker.extensions.echoRequest
 import nl.jcraane.mocker.extensions.mock
 import nl.jcraane.mocker.extensions.mockWebSocket
@@ -70,6 +71,7 @@ fun Application.module() {
     mock {
         RoadsideAssistance()
         PechMeldingen()
+        Parking()
     }
 
     mockWebSocket("api/v2/websocket") {
@@ -93,25 +95,26 @@ private fun Application.userDefinedFeatures() {
             )
         )
     }
+    install(RequestForwardingAndRecordingFeature) {
+        forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(
+            enabled = true,
+            origin = "https://api-acc.anwb.nl/"
+        )
+//        recordingConfig = RequestForwardingAndRecordingFeature.Configuration.RecorderConfig(
+//            enabled = true,
+//            persister = KtFilePersister(
+//                sourceFileWriter = FileWriterStrategy(
+//                    rootFolder = "/Users/sannenoordzij/ANWB/mocker-rsa/src/main/kotlin/mocks",
+//                    defaultFileName = "Recorded.kt"
+//                ),
+//                resourceFileWriter = FileWriterStrategy(rootFolder = "/Users/sannenoordzij/ANWB/mocker-rsa/src/main/resources/responses/recorded/")
+//            ),
+//            recordQueryParameters = true
+//        )
+    }
+
     install(DetailLoggingFeature) {
         //        logDetails = DetailLoggingFeature.Configuration.LogDetail.values().toList()
-    }
-    install(RequestForwardingAndRecordingFeature) {
-        forwardingConfig = RequestForwardingAndRecordingFeature.Configuration.ForwardingConfig(true, "http://localhost:8081")
-        recordingConfig = RequestForwardingAndRecordingFeature.Configuration.RecorderConfig(
-            true,
-            KtFilePersister(
-                sourceFileWriter = FileWriterStrategy(
-                    rootFolder = "/Users/jamiecraane/develop/IntelliJ/mocker/src/main/kotlin/mocks",
-                    defaultFileName = "Recorded.kt"
-                ),
-                resourceFileWriter = FileWriterStrategy(
-                    rootFolder = "/Users/jamiecraane/develop/IntelliJ/mocker/src/main/resources/responses/recorded/",
-                    overwriteExistingFiles = true
-                )
-            ),
-            recordQueryParameters = true
-        )
     }
 
     install(ChaosMockerFeature) {

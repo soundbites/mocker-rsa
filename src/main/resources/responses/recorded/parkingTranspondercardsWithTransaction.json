@@ -1,0 +1,50 @@
+[
+  {
+    "licensePlate": "AN-WB-01",
+    "cardStatus": "Active",
+    "licensePlateCountry": "NL",
+    "cardCode": "1329184",
+    "runningTransaction": null
+  },
+  {
+    "licensePlate": "NV-222-C",
+    "cardStatus": "Active",
+    "licensePlateCountry": "B",
+    "cardCode": "1329183",
+    "runningTransaction": {
+      "licensePlate": "NV-222-C",
+      "parkingZone": 999999,
+      "transponderCardNr": "1329183",
+      "maxEndTime": "2021-07-16T21:59:00+0000",
+      "preferedEndTime": null,
+      "licensePlateCountry": "B",
+      "visitorName": null,
+      "beginTime": "2021-07-16T07:20:58+0000",
+      "endPaidParking": "2021-07-16T21:59:00+0000",
+      "callCosts": 0,
+      "effectiveDuration": null,
+      "parkingCardArea": null,
+      "parkingCosts": null,
+      "providerTransactionStatusCode": null,
+      "streetName": "Testzone",
+      "garageInfo": null,
+      "endTime": null,
+      "provider": "TEST",
+      "id": 127248538
+    }
+  },
+  {
+    "licensePlate": "123ANB",
+    "cardStatus": "Active",
+    "licensePlateCountry": "I",
+    "cardCode": "1329182",
+    "runningTransaction": null
+  },
+  {
+    "licensePlate": "ANW145",
+    "cardStatus": "Active",
+    "licensePlateCountry": "F",
+    "cardCode": "1329181",
+    "runningTransaction": null
+  }
+]

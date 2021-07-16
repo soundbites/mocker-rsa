@@ -1,0 +1,30 @@
+[
+  {
+    "licensePlate": "AN-WB-01",
+    "cardStatus": "Active",
+    "licensePlateCountry": "NL",
+    "cardCode": "1329184",
+    "runningTransaction": null
+  },
+  {
+    "licensePlate": "NV-222-C",
+    "cardStatus": "Active",
+    "licensePlateCountry": "B",
+    "cardCode": "1329183",
+    "runningTransaction": null
+  },
+  {
+    "licensePlate": "123ANB",
+    "cardStatus": "Active",
+    "licensePlateCountry": "I",
+    "cardCode": "1329182",
+    "runningTransaction": null
+  },
+  {
+    "licensePlate": "ANW145",
+    "cardStatus": "Active",
+    "licensePlateCountry": "F",
+    "cardCode": "1329181",
+    "runningTransaction": null
+  }
+]
