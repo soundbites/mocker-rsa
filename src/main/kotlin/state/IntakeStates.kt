@@ -3,6 +3,7 @@ package state
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import mocks.RequestBreakdownReport
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -13,17 +14,18 @@ import kotlin.math.max
 
 data class IntakeStates(val report: RequestBreakdownReport, var currentState: State, val creationTime: LocalDateTime) {
 
-    val totalDuration = 12 * 60
+    val totalDuration = 6 * 60
 
     fun nextStatus(): Status? {
 
         val elapsed = ChronoUnit.SECONDS.between(creationTime, LocalDateTime.now())
+        val aanrijTijd = totalDuration - elapsed
 
         return when (currentState) {
             State.Intake -> null
-            State.Toewijzen -> Status.create(report, true, creationTime = creationTime)
+            State.Toewijzen -> Status.create(report, true, waitingTime = Duration.between(creationTime, LocalDateTime.now()).seconds, creationTime = creationTime)
             State.Onderweg -> {
-                val status = Status.create(report, creationTime = creationTime)
+                val status = Status.create(report, waitingTime = Duration.between(creationTime, LocalDateTime.now()).seconds, creationTime = creationTime)
                 return status.copy(
                     fase = "ONDERWEG",
                     status = "A",
@@ -33,7 +35,7 @@ data class IntakeStates(val report: RequestBreakdownReport, var currentState: St
                 )
             }
             State.Nadert -> {
-                val status = Status.create(report, waitingTime = (totalDuration * 1000) - (elapsed * 1000), creationTime = creationTime)
+                val status = Status.create(report, waitingTime = Duration.between(creationTime, LocalDateTime.now()).seconds, creationTime = creationTime, aanrijTijd = aanrijTijd)
                 return status.copy(
                     fase = "NADERT",
                     status = "A",
@@ -44,7 +46,7 @@ data class IntakeStates(val report: RequestBreakdownReport, var currentState: St
             }
             State.Dichtbij -> {
                 val status = Status.create(
-                    report, waitingTime = (totalDuration * 1000) - (elapsed * 1000), creationTime = creationTime
+                    report, waitingTime = Duration.between(creationTime, LocalDateTime.now()).seconds, creationTime = creationTime, aanrijTijd = aanrijTijd
                 )
 
                 val elapsedSinceStep = elapsed - ((totalDuration.toDouble() / 5) * 4)
@@ -75,7 +77,7 @@ data class IntakeStates(val report: RequestBreakdownReport, var currentState: St
                 )
             }
             State.Uitvoeren -> {
-                val status = Status.create(report, creationTime = creationTime)
+                val status = Status.create(report, waitingTime = Duration.between(creationTime, LocalDateTime.now()).seconds, creationTime = creationTime)
                 return status.copy(
                     fase = "UITVOEREN",
                     status = "U",
@@ -126,12 +128,13 @@ data class Status(
     var status: String,
     val statusTijd: String,
     val wachtTijd: Long,
+    val aanrijTijd: Long? = null,
     val incident: Incident,
     val incFlags: IncFlags,
     var hulpverlener: Hulpverlener? = null
 ) {
     companion object {
-        fun create(report: RequestBreakdownReport, isBusier: Boolean = false, waitingTime: Long = 1944000, creationTime: LocalDateTime): Status {
+        fun create(report: RequestBreakdownReport, isBusier: Boolean = false, waitingTime: Long, creationTime: LocalDateTime, aanrijTijd: Long? = null): Status {
 
             val dateFormat: DateTimeFormatter = DateTimeFormatter
                 .ofPattern("yyyy-MM-dd'T'HH:mm:ss+0200")
@@ -144,6 +147,7 @@ data class Status(
                 status = "-",
                 statusTijd = dateFormat.format(creationTime),
                 wachtTijd = waitingTime,
+                aanrijTijd = aanrijTijd,
                 incident = Incident(
                     sessie = "77A0955F6FDFFBEC",
                     volgNr = 53694,

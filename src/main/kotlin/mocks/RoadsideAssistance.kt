@@ -51,7 +51,7 @@ data class RequestBreakdownReport(
 
     @Serializable
     data class UserInfo(
-        val memberofANWB: Boolean,
+        val memberOfANWB: Boolean,
         val relationNumber: String,
         val phoneNumber: String,
         val phoneType: String
