@@ -5,6 +5,11 @@ of services using Ktor.
 
 This approach differs from traditional mocking applications since the mocks are purely defined in code so the full power of Kotlin and DSL's can be used.
 
+## Running mocker in Docker
+
+Run `docker build -t rsa_mocker .` to build the image
+then run `docker run -p 8080:8080 rsa_mocker`
+
 ## Basic usage
 
 CORS headers are installed by default as is the serving of static content from the static folder under resources.
