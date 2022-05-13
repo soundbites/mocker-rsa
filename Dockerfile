@@ -1,7 +1,7 @@
 FROM gradle:7-jdk11 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle fatJar --no-daemon
+RUN gradle fatJar
 
 FROM openjdk:11
 EXPOSE 8080:8080
