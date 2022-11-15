@@ -2,19 +2,34 @@ package mocks
 
 import kotlinx.serialization.Serializable
 import io.ktor.application.*
+import io.ktor.http.*
 import io.ktor.request.*
+import io.ktor.response.*
 import io.ktor.routing.*
 import kotlinx.serialization.json.Json
 import nl.jcraane.mocker.extensions.respondContents
 import state.IntakeStates
+import state.Status
 import java.time.LocalDateTime
 
 fun Route.RoadsideAssistance() {
     post("v2/roadside-assistance") {
         val report = Json.parse(RequestBreakdownReport.serializer(), call.receiveText())
-        meldingen.add(IntakeStates(report, IntakeStates.State.Intake, LocalDateTime.now()))
-        call.respondContents("/responses/roadside-assistance-success.json")
+        val intakeStates = IntakeStates(report, IntakeStates.State.Intake, LocalDateTime.now())
+        meldingen.add(intakeStates)
+        val response = RoadsideAssistanceResponseHolder(mocks.RoadsideAssistanceResponseHolder.Item(CaseNumber = intakeStates.caseNumber))
+        call.respondText(Json.stringify(RoadsideAssistanceResponseHolder.serializer(), response), ContentType.Application.Json)
     }
+}
+
+@Serializable
+data class RoadsideAssistanceResponseHolder(val ProcesInformatieItem: Item) {
+    @Serializable
+    data class Item(
+        val Naam: String = "DIGITALE_INTAKE",
+        val Waarde: String = "DIGITALE_INTAKE",
+        val CaseNumber: Long
+    )
 }
 
 @Serializable

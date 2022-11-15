@@ -1,6 +1,7 @@
 {
   "ProcesInformatieItem": {
     "Naam": "DIGITALE_INTAKE",
-    "Waarde": "GESLAAGD"
+    "Waarde": "GESLAAGD",
+    "CaseNumber": "{CASENUMBER}"
   }
 }

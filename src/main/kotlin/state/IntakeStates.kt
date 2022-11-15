@@ -10,11 +10,13 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.math.max
+import kotlin.random.Random
 
 
 data class IntakeStates(val report: RequestBreakdownReport, var currentState: State, val creationTime: LocalDateTime) {
 
     val totalDuration = 6 * 60
+    val caseNumber = Random.nextLong(10000000000, 99999999999)
 
     fun nextStatus(): Status? {
 
