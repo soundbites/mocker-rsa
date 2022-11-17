@@ -44,6 +44,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.handleCaseStatusCall(
             polymorphic(MessageDetails::class) {
                 Status::class with Status.serializer()
                 TowTruckDetails::class with TowTruckDetails.serializer()
+                CaseReceived::class with CaseReceived.serializer()
             }
         }
 

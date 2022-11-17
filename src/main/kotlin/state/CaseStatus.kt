@@ -32,7 +32,7 @@ class CaseStatus(var intakeStates: IntakeStates, var currentState: State) {
                 if (dispatchStatus != null) {
                     return CaseStatusMessage(messageDetails = dispatchStatus, messageType = "DispatchLocationMessage")
                 } else {
-                    return null
+                    return CaseStatusMessage(messageDetails = CaseReceived(messageDetails = CaseReceivedMessageDetails(caseNumber = intakeStates.caseNumber), metadata = Metadata(caseNumber = intakeStates.caseNumber)), messageType = "CaseReceivedMessage")
                 }
             }
             State.GEACCEPTEERD -> {
@@ -132,4 +132,32 @@ data class Location(
     val latitude: Double = 52.680749999999996,
     val longitude: Double = 4.8342,
     val name: String = "Onbekend"
+)
+
+@Serializable
+data class CaseReceived(
+    val created: String = "2022-10-19T08:46:39.556+00:00",
+    val messageDetails: CaseReceivedMessageDetails,
+    val messageType: String = "CaseReceivedMessage",
+    val metadata: Metadata
+): MessageDetails
+
+@Serializable
+data class CaseReceivedMessageDetails(
+    val assistancePhoneNumber: String = "+31703145615",
+    val breakdownLocationCountry: String = "NL",
+    val breakdownLocationCountryName: String = "Nederland",
+    val caseNumber: Long,
+    val contractLabelId: String = "ANWB",
+    val contractMarket: String = "coma",
+    val registrationTime: String = "2022-10-19T10:45:21.736+02:00",
+    val smsSender: String = "ANWB"
+)
+
+@Serializable
+data class Metadata(
+    val assistancePhoneNumber: String = "+31703145615",
+    val caseNumber: Long,
+    val contractMarket: String = "coma",
+    val smsSender: String ="ANWB"
 )
