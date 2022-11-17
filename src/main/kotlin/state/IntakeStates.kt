@@ -12,7 +12,7 @@ import java.util.*
 import kotlin.math.max
 import kotlin.random.Random
 
-val totalDuration = 6 * 10
+val totalDuration = 6 * 30
 
 data class IntakeStates(val report: RequestBreakdownReport, var currentState: State, val creationTime: LocalDateTime) {
 
