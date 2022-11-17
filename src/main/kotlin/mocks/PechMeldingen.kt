@@ -17,7 +17,7 @@ val meldingen = mutableListOf<IntakeStates>()
 
 @UseExperimental(ImplicitReflectionSerializer::class)
 fun Route.PechMeldingen() {
-    get("disinfo/v1/pechMeldingen/relnr/{relnr}") {
+    get("disinfo/v1/pechmeldingen/relnr/{relnr}") {
         handlePechmeldingenCall()
     }
     get("disinfo/v1/pechmeldingen/relnr/{relnr}") {
