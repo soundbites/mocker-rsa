@@ -17,6 +17,7 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.websocket.WebSockets
+import mocks.CaseStatus
 import mocks.Parking
 import nl.jcraane.mocker.extensions.echoRequest
 import nl.jcraane.mocker.extensions.mock
@@ -71,6 +72,7 @@ fun Application.module() {
     mock {
         RoadsideAssistance()
         PechMeldingen()
+        CaseStatus()
         Parking()
     }
 

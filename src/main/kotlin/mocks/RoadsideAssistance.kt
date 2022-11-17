@@ -8,6 +8,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import kotlinx.serialization.json.Json
 import nl.jcraane.mocker.extensions.respondContents
+import state.CaseStatus
 import state.IntakeStates
 import state.Status
 import java.time.LocalDateTime
@@ -17,6 +18,7 @@ fun Route.RoadsideAssistance() {
         val report = Json.parse(RequestBreakdownReport.serializer(), call.receiveText())
         val intakeStates = IntakeStates(report, IntakeStates.State.Intake, LocalDateTime.now())
         meldingen.add(intakeStates)
+        caseStatus.add(CaseStatus(intakeStates, CaseStatus.State.Dispatch))
         val response = RoadsideAssistanceResponseHolder(mocks.RoadsideAssistanceResponseHolder.Item(CaseNumber = intakeStates.caseNumber))
         call.respondText(Json.stringify(RoadsideAssistanceResponseHolder.serializer(), response), ContentType.Application.Json)
     }

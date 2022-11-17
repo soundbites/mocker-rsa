@@ -12,10 +12,10 @@ import java.util.*
 import kotlin.math.max
 import kotlin.random.Random
 
+val totalDuration = 6 * 10
 
 data class IntakeStates(val report: RequestBreakdownReport, var currentState: State, val creationTime: LocalDateTime) {
 
-    val totalDuration = 6 * 60
     val caseNumber = Random.nextLong(10000000000, 99999999999)
 
     fun nextStatus(): Status? {
@@ -134,7 +134,7 @@ data class Status(
     val incident: Incident,
     val incFlags: IncFlags,
     var hulpverlener: Hulpverlener? = null
-) {
+): MessageDetails {
     companion object {
         fun create(report: RequestBreakdownReport, isBusier: Boolean = false, waitingTime: Long, creationTime: LocalDateTime, aanrijTijd: Long? = null): Status {
 
