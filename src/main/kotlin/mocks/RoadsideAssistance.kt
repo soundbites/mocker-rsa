@@ -29,7 +29,7 @@ data class RoadsideAssistanceResponseHolder(val ProcesInformatieItem: Item) {
     @Serializable
     data class Item(
         val Naam: String = "DIGITALE_INTAKE",
-        val Waarde: String = "DIGITALE_INTAKE",
+        val Waarde: String = "GESLAAGD",
         val CaseNumber: Long
     )
 }
