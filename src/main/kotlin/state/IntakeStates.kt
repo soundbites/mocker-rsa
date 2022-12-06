@@ -18,6 +18,8 @@ data class IntakeStates(val report: RequestBreakdownReport, var currentState: St
 
     val caseNumber = Random.nextLong(10000000000, 99999999999)
 
+    val skipDispatch = report.relation.phoneNumber.startsWith("0600000000")
+
     fun nextStatus(): Status? {
 
         val elapsed = ChronoUnit.SECONDS.between(creationTime, LocalDateTime.now())

@@ -29,7 +29,7 @@ class CaseStatus(var intakeStates: IntakeStates, var currentState: State) {
         return when (currentState) {
             State.Dispatch -> {
                 val dispatchStatus = intakeStates.nextStatus()
-                if (dispatchStatus != null) {
+                if (dispatchStatus != null && !intakeStates.skipDispatch) {
                     return CaseStatusMessage(messageDetails = dispatchStatus, messageType = "DispatchLocationMessage")
                 } else {
                     return CaseStatusMessage(messageDetails = CaseReceived(messageDetails = CaseReceivedMessageDetails(caseNumber = intakeStates.caseNumber), metadata = Metadata(caseNumber = intakeStates.caseNumber)), messageType = "CaseReceivedMessage")
@@ -83,16 +83,29 @@ class CaseStatus(var intakeStates: IntakeStates, var currentState: State) {
 
         val elapsed = ChronoUnit.SECONDS.between(intakeStates.creationTime, LocalDateTime.now()).toInt()
 
-        val durationPart = totalDuration / 5
 
-        return when (elapsed) {
-            in 0..durationPart*5 -> CaseStatus(intakeStates, State.Dispatch)
-            in durationPart*5+1..durationPart*6 -> CaseStatus(intakeStates, State.GEACCEPTEERD)
-            in durationPart*6+1..durationPart*7 -> CaseStatus(intakeStates, State.ONDERWEG)
-            in durationPart*7+1..durationPart*8 -> CaseStatus(intakeStates, State.ONDERWEG_WITH_LOCATION)
-            in durationPart*8+1..durationPart*9 -> CaseStatus(intakeStates, State.LADEN)
-            else -> null
+        if (intakeStates.skipDispatch) {
+            val durationPart = totalDuration / 4
+            return when (elapsed) {
+                in 0..durationPart -> CaseStatus(intakeStates, State.Dispatch)
+                in durationPart+1..durationPart*2 -> CaseStatus(intakeStates, State.GEACCEPTEERD)
+                in durationPart*2+1..durationPart*3 -> CaseStatus(intakeStates, State.ONDERWEG)
+                in durationPart*3+1..durationPart*4 -> CaseStatus(intakeStates, State.ONDERWEG_WITH_LOCATION)
+                in durationPart*4+1..durationPart*5 -> CaseStatus(intakeStates, State.LADEN)
+                else -> null
+            }
+        } else {
+            val durationPart = totalDuration / 5
+            return when (elapsed) {
+                in 0..durationPart*5 -> CaseStatus(intakeStates, State.Dispatch)
+                in durationPart*5+1..durationPart*6 -> CaseStatus(intakeStates, State.GEACCEPTEERD)
+                in durationPart*6+1..durationPart*7 -> CaseStatus(intakeStates, State.ONDERWEG)
+                in durationPart*7+1..durationPart*8 -> CaseStatus(intakeStates, State.ONDERWEG_WITH_LOCATION)
+                in durationPart*8+1..durationPart*9 -> CaseStatus(intakeStates, State.LADEN)
+                else -> null
+            }
         }
+
     }
 
     enum class State {
